@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 using namespace std;
 
@@ -54,6 +54,8 @@ class Game
 		int     max_tree3;
 		float   max_score;
 		int		stop_seed;
+		int     nb_actions;
+		vector<string>   actions;
 
 		// Methods
 
@@ -85,11 +87,13 @@ class Game
 		void	print_score_info(void);
 		void	print_dist(void);
 		void    print_day_info(void);
+		void    print_day(void);
+		void    print_start_info(void);
 };
 
-/*
- ** Print useful
- */
+// -----------------------------
+//        Useful printing
+// -----------------------------
 
 void    print_tab(int tab[37])
 {
@@ -143,74 +147,120 @@ void    Game::print_day_info(void)
 	cerr << " r1[" << nb_rich1 << "]";
 	cerr << " r2[" << nb_rich2 << "]";
 	cerr << " r3[" << nb_rich3 << "]";
-	cerr << "\t richness[" << f_rich << "]" << endl;
+	cerr << "  rich[" << f_rich << "]" << endl;
 }
 
-/*
-** Is on diagonal
-*/
+void    Game::print_diag(void)
+{
+	cerr << "Free diag : ";
+	for (int i = 0; i < cells; i++)
+	{
+		if (no_diag[i] > 0)
+			cerr << i << "[" << no_diag[i] << "] ";
+	}
+	cerr << endl;
+}
+
+void    Game::print_start_info()
+{
+	cerr << cells << endl;
+	for (int i = 0; i < cells; i++) {
+		cerr << i << " " << richness_tab[i] << " ";
+		for (int j = 0; j < 6; j++) {
+			cerr << neigh_tab[i][j];
+			if (j < 5)
+				cerr << " ";
+		}
+		cerr << endl;
+	}
+}
+
+void    Game::print_day() {
+	cerr << day << endl;
+	cerr << nutrients << endl;
+	cerr << sun << " " << score_tot << endl;
+	cerr << oppSun << " " << oppScore << " " << oppIsWaiting << endl;
+	cerr << tot_tree << endl;
+	for (int i = 0; i < cells; i++)
+	{
+		if (owner[i] > 0)
+			cerr << i << " " << size[i] << " " << owner[i] - 1 << " " << dormant[i] << endl;
+	}
+	cerr << nb_actions << endl;
+	for (int i = 0; i < nb_actions; i++) {
+		cerr << actions[i];
+		if (i < nb_actions - 1)
+			cerr << " ";
+	}
+	cerr << endl;
+}
+
+
+// -----------------------------
+//        Is on diagonal
+// -----------------------------
 
 int     Game::is_reachable(int i, int j)
 {
-    int neighs[18];
+	int neighs[18];
 
-    for (int k = 0; k < 6; k++)
-        neighs[k] = neigh_tab[i][k];
-    for (int k = 0; k < 6; k++)
-    {
-        if (neighs[k] >= 0)
-            neighs[6 + k] = neigh_tab[neighs[k]][k];
-        else
-            neighs[6 + k] = -1;
-    }
-    for (int k = 0; k < 6; k++)
-    {
-        if (neighs[6 + k] >= 0)
-            neighs[12 + k] = neigh_tab[neighs[6 + k]][k];
-        else
-            neighs[12 + k] = -1;
-    }
-    for (int k = 0; k < 18; k++)
-    {
-        if (neighs[k] == j)
-            return (1);
-    }
-    return (0);
+	for (int k = 0; k < 6; k++)
+		neighs[k] = neigh_tab[i][k];
+	for (int k = 0; k < 6; k++)
+	{
+		if (neighs[k] >= 0)
+			neighs[6 + k] = neigh_tab[neighs[k]][k];
+		else
+			neighs[6 + k] = -1;
+	}
+	for (int k = 0; k < 6; k++)
+	{
+		if (neighs[6 + k] >= 0)
+			neighs[12 + k] = neigh_tab[neighs[6 + k]][k];
+		else
+			neighs[12 + k] = -1;
+	}
+	for (int k = 0; k < 18; k++)
+	{
+		if (neighs[k] == j)
+			return (1);
+	}
+	return (0);
 }
 
 void    Game::fill_diag(void)
 {
-    int is_on_diag;
+	int is_on_diag;
 
-    for (int i = 0; i < cells; i++)
-    {
-        for (int j = i; j < cells; j++)
-        {
-            if (j > i)
-            {
-                is_on_diag = is_reachable(i, j);
-                on_diag[i][j] = is_on_diag;
-                on_diag[j][i] = is_on_diag;
-            }
-            else
-                on_diag[i][j] = 0;
-        }
-        no_diag[i] = 0;
-    }
+	for (int i = 0; i < cells; i++)
+	{
+		for (int j = i; j < cells; j++)
+		{
+			if (j > i)
+			{
+				is_on_diag = is_reachable(i, j);
+				on_diag[i][j] = is_on_diag;
+				on_diag[j][i] = is_on_diag;
+			}
+			else
+				on_diag[i][j] = 0;
+		}
+		no_diag[i] = 0;
+	}
 
-    for (int i = 0; i < cells; i++)
-    {
-        for (int j = 0; j < cells; j++)
-        {
-            if (owner[j] > 1 && on_diag[i][j])  // > 1 pour uniquement mes arbres
-                no_diag[i]++;
-        }
-    }
+	for (int i = 0; i < cells; i++)
+	{
+		for (int j = 0; j < cells; j++)
+		{
+			if (owner[j] > 1 && on_diag[i][j])
+				no_diag[i]++;
+		}
+	}
 }
 
-/*
-** Score based version
-*/
+// -----------------------------
+//      Score based version
+// -----------------------------
 
 void	Game::sort_on_score(void)
 {
@@ -261,15 +311,15 @@ int     Game::plant_seed(int i)
 	int j;
 
 	j = cells - 1;
-    if (neigh_allies[i] != 0)
-        return (0);
+	if (neigh_allies[i] != 0)
+		return (0);
 	while (j >= 0 && sorted[j] == -1)
 		j--;
 	while (j >= 0)
 	{
 		if (dist[i][sorted[j]] > 1 && dist[i][sorted[j]] <= size[sorted[j]])
 		{
-			printf("SEED %d %d welcome\n", sorted[j], i);
+			cout << "SEED " << sorted[j] << " " << i << "welcome" << endl;
 			return (1);
 		}
 		j--;
@@ -321,18 +371,18 @@ void    Game::action(void)
 	int     father;
 	int     i;
 
-	if (time_to_score()) // a calculer en fonction de l'opposant
+	if (time_to_score())
 	{
 		actualize_score();
 		sort_on_score();
 	}
-	//print_score_info();
+	print_score_info();
 	i = 0;
 	while (i < cells && sorted[i] != -1)
 	{
 		if (cost[sorted[i]] <= sun)
 		{	
-            if (execute_action(sorted[i]))
+			if (execute_action(sorted[i]))
 				return ;
 		}
 		i++;
@@ -340,9 +390,9 @@ void    Game::action(void)
 	printf("WAIT zZZzzZzzz\n");
 }
 
-/*
- ** Calculate useful data
- */
+// -----------------------------
+//     Calculate useful data
+// -----------------------------
 
 void    Game::calculate_spooky_cells(void)
 {
@@ -404,8 +454,8 @@ float   Game::size_factor(int i)
 
 	if (size[i] < 3)
 		size_f = size[i] + 2;
-    else
-        size_f = 1;
+	else
+		size_f = 1;
 	return (size_f);
 }
 
@@ -413,15 +463,15 @@ float   Game::spot_factor(int i)
 {
 	float   alone_f;
 	float   richness_f;
-    float   richness_bgn;
+	float   richness_bgn;
 	float   shadow_f;
-    float   diag_f;
+	float   diag_f;
 	float   spot_f;
 
 	alone_f = (float)(7 - neigh_opp[i] - neigh_allies[i]);
 	richness_f = richness_tab[i];
 	shadow_f = (neigh_opp[i] > neigh_allies[i]) * 1.0;
-    diag_f = 7.0 / (1 + no_diag[i]);
+	diag_f = 7.0 / (1 + no_diag[i]);
 	spot_f = f_alone * alone_f + f_rich * richness_f * diag_f + shadow_f + spooky[i];
 	return (spot_f);
 }
@@ -460,9 +510,9 @@ void    Game::calculate_score(void)
 	max_score = max;
 }
 
-/*
-** Scan game info
-*/
+// -----------------------------
+//        Scan game info
+// -----------------------------
 
 void	Game::fill_distance(int index)
 {
@@ -551,6 +601,7 @@ void    Game::init_all(void)
 	f_rich = 2;
 	f_alone = 3;
 	stop_seed = 16;
+	actions.clear();
 }
 
 void	Game::scan_trees(void)
@@ -562,43 +613,45 @@ void	Game::scan_trees(void)
 
 	for (int i = 0; i < tot_tree; i++) {
 		cin >> cell_index >> size_tree >> is_mine >> is_dormant; cin.ignore();
-		owner[cell_index] = 1 + is_mine;
-		size[cell_index] = size_tree;
-		if (owner[cell_index] == 2)
+		if (cell_index < cells && cell_index >= 0)
 		{
-			if (size_tree == 0)
-				nb_size0++;
-			else if (size_tree == 1)
-				nb_size1++;
-			else if (size_tree == 2)
-				nb_size2++;
-			else if (size_tree == 3)
-				nb_size3++;
+			owner[cell_index] = 1 + is_mine;
+			size[cell_index] = size_tree;
+			if (owner[cell_index] == 2)
+			{
+				if (size_tree == 0)
+					nb_size0++;
+				else if (size_tree == 1)
+					nb_size1++;
+				else if (size_tree == 2)
+					nb_size2++;
+				else if (size_tree == 3)
+					nb_size3++;
+			}
+			else if (owner[cell_index] == 1)
+			{
+				if (size_tree == 0)
+					opp_size0++;
+				else if (size_tree == 1)
+					opp_size1++;
+				else if (size_tree == 2)
+					opp_size2++;
+				else if (size_tree == 3)
+					opp_size3++;
+			}
+			dormant[cell_index] = is_dormant;
 		}
-		else if (owner[cell_index] == 1)
-		{
-			if (size_tree == 0)
-				opp_size0++;
-			else if (size_tree == 1)
-				opp_size1++;
-			else if (size_tree == 2)
-				opp_size2++;
-			else if (size_tree == 3)
-				opp_size3++;
-		}
-		dormant[cell_index] = is_dormant;
 	}
 	nb_tree = nb_size0 + nb_size1 + nb_size2 + nb_size3;
 }
 
 void	Game::scan_moves(void)
 {
-	int numberOfPossibleActions; // all legal actions
-
-	cin >> numberOfPossibleActions; cin.ignore();
-	for (int i = 0; i < numberOfPossibleActions; i++) {
+	cin >> nb_actions; cin.ignore();
+	for (int i = 0; i < nb_actions; i++) {
 		string possibleAction;
 		getline(cin, possibleAction);
+		actions.push_back(possibleAction);
 	}
 }
 
@@ -623,49 +676,36 @@ void    Game::fill_dist(void)
 	}
 }
 
-void    Game::print_diag(void)
-{
-	cerr << "Free diag : ";
-	for (int i = 0; i < cells; i++)
-	{
-		if (no_diag[i] > 0)
-			cerr << i << "[" << no_diag[i] << "]";
-	}
-	cerr << endl;
-}
-
 int main()
 {
 	Game	game;
 
+	game.nb_rich0 = 0;
+	game.nb_rich1 = 0;
+	game.nb_rich2 = 0;
+	game.nb_rich3 = 0;
+	game.max_tree3 = 4;
 	game.scan_grid();
-
-	// game loop
+	game.fill_dist();
 	while (1) {
 		game.scan_info();
 		game.init_all();
 		game.scan_trees();
-		//game.scan_moves();
-        //game.fill_diag();
-		//game.calculate_spooky_cells();
-		//game.calculate_reachable();
-		//game.calculate_cost();
-		//game.calculate_score();
-		//game.sort_on_score();
+		game.scan_moves();
+
+		game.print_start_info();
+		game.print_day();
+
+		game.fill_diag();
+		game.calculate_spooky_cells();
+		game.calculate_reachable();
+		game.calculate_cost();
+		game.calculate_score();
+		game.sort_on_score();
 		game.f_rich = 2 * sqrt((double)game.nb_rich0);
 		if (game.f_rich == 0)
 			game.f_rich = 1;
-		//game.print_day_info();
-        //game.print_diag();
-		//game.action();
-
-
-		// To debug: cerr << "Debug messages..." << endl;
-		cerr << "number of cells : "<< game.cells << endl;
-		game.print_diag();
-
-
-		// GROW cellIdx | SEED sourceIdx targetIdx | COMPLETE cellIdx | WAIT <message>
-		cout << "WAIT" << endl;
+		game.action();
 	}
+	return (0);
 }

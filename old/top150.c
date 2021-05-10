@@ -628,6 +628,7 @@ int main()
 		print_day_info(game);
         print_diag(game);
 		action(&game);
+		return (0);
 	}
 	return (0);
 }
