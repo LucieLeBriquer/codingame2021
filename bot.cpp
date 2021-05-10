@@ -70,7 +70,7 @@ class Game
 		void	fillDist();
 		void	printDiag();
 		void	fillDistance(int index);
-		void    calculateSpooky(void);
+		void    calculateSpooky();
 		void    calculateReachable();
 		void	numberNeigh(int i);
 		float   sizeFactor(int i);
@@ -82,7 +82,7 @@ class Game
 		int		costOf(int i);
 		int     plantSeed(int i);
 		int     executeAction(int i);
-		void    actualizeScore(void);
+		void    actualizeScore();
 		int		timeToScore();
 		void    action();
 		void	fillDiag();
@@ -98,7 +98,7 @@ class Game
 //        Useful printing
 // -----------------------------
 
-void    print_tab(int tab[37])
+void    printTab(int tab[37])
 {
 	for (int i = 0; i < 37; i++)
 	{
@@ -108,7 +108,7 @@ void    print_tab(int tab[37])
 	cerr << endl;
 }
 
-void    print_float(float tab[37])
+void    printFloat(float tab[37])
 {
 	for (int i = 0; i < 37; i++)
 	{
@@ -118,23 +118,23 @@ void    print_float(float tab[37])
 	cerr << endl;
 }
 
-void	Game::printScoreOfBoard(void)
+void	Game::printScoreOfBoard()
 {
 	cerr << "        ";
 	for (int i = 0; i < 37; i++)
 		cerr << setw(3) << i << " ";
 	cerr << endl;
 	cerr << "Score : ";
-	print_float(score);
+	printFloat(score);
 	cerr << "Reach : ";
-	print_tab(reachable);
+	printTab(reachable);
 	cerr << "Cost :  ";
-	print_tab(cost);
+	printTab(cost);
 	cerr << endl << "Sort :  ";
-	print_tab(sorted);
+	printTab(sorted);
 }
 
-void	Game::printDist(void)
+void	Game::printDist()
 {
 	for (int i = 0; i < cells; i++)
 	{
@@ -144,7 +144,7 @@ void	Game::printDist(void)
 	}
 }
 
-void    Game::printInfo(void)
+void    Game::printInfo()
 {
 	cerr << "[DAY " << day << "] sun " << allySun << " r0[" << boardRich0 << "]";
 	cerr << " r1[" << boardRich1 << "]";
@@ -153,7 +153,7 @@ void    Game::printInfo(void)
 	cerr << "  rich[" << richnessImportance << "]" << endl;
 }
 
-void    Game::printDiag(void)
+void    Game::printDiag()
 {
 	cerr << "Free diag : ";
 	for (int i = 0; i < cells; i++)
@@ -227,7 +227,7 @@ int     Game::isReachable(int i, int j)
 	return (0);
 }
 
-void    Game::fillDiag(void)
+void    Game::fillDiag()
 {
 	int isOnSameDiag;
 
@@ -261,7 +261,7 @@ void    Game::fillDiag(void)
 //      Score based version
 // -----------------------------
 
-void	Game::sortOnScore(void)
+void	Game::sortOnScore()
 {
 	int max;
 	int max_index;
@@ -343,7 +343,7 @@ int     Game::executeAction(int i)
 	return (0);
 }
 
-void    Game::actualizeScore(void)
+void    Game::actualizeScore()
 {
 	for (int i = 0; i < 37; i++)
 	{
@@ -352,7 +352,7 @@ void    Game::actualizeScore(void)
 	}
 }
 
-int     Game::timeToScore(void)
+int     Game::timeToScore()
 {
 	if (23 - day <= allySize3)
 		return (1);
@@ -363,7 +363,7 @@ int     Game::timeToScore(void)
 	return (0);
 }
 
-void    Game::action(void)
+void    Game::action()
 {
 	int     father;
 	int     i;
@@ -391,7 +391,7 @@ void    Game::action(void)
 //     Calculate useful data
 // -----------------------------
 
-void    Game::calculateSpooky(void)
+void    Game::calculateSpooky()
 {
 	int nb;
 	int next;
@@ -410,7 +410,7 @@ void    Game::calculateSpooky(void)
 	}
 };
 
-void    Game::calculateReachable(void)
+void    Game::calculateReachable()
 {
 	int next;
 	int nb;
@@ -481,13 +481,13 @@ float   Game::costFactor(int i)
 	return (cost_f);
 }
 
-void    Game::calculateCost(void)
+void    Game::calculateCost()
 {
 	for (int i = 0; i < cells; i++)
 		cost[i] = costOf(i);
 }
 
-void    Game::calculateScore(void)
+void    Game::calculateScore()
 {
 	float max;
 
@@ -520,7 +520,7 @@ void	Game::fillDistance(int index)
 	}
 }
 
-void	Game::scanGrid(void)
+void	Game::scanGrid()
 {
 	int rich;
 	int index;
@@ -558,7 +558,7 @@ void	Game::scanGrid(void)
 	}
 }
 
-void	Game::scanInfo(void)
+void	Game::scanInfo()
 {
 	int opp_sun;
 	int opp_score;
@@ -573,7 +573,7 @@ void	Game::scanInfo(void)
 	cin >> boardTrees; cin.ignore();
 }
 
-void    Game::initBoard(void)
+void    Game::initBoard()
 {
 	for (int i = 0 ; i < cells; i++)
 	{
@@ -601,7 +601,7 @@ void    Game::initBoard(void)
 	actions.clear();
 }
 
-void	Game::scanTrees(void)
+void	Game::scanTrees()
 {
 	int cell_index;
 	int size_tree;
@@ -642,7 +642,7 @@ void	Game::scanTrees(void)
 	allyTrees = allySize0 + allySize1 + allySize2 + allySize3;
 }
 
-void	Game::scanMoves(void)
+void	Game::scanMoves()
 {
 	cin >> numberOfActions; cin.ignore();
 	for (int i = 0; i < numberOfActions; i++) {
@@ -652,7 +652,7 @@ void	Game::scanMoves(void)
 	}
 }
 
-void    Game::fillDist(void)
+void    Game::fillDist()
 {
 	int     k;
 	const char *str_dist = "0111111222222222222333333333333333333\n012221112233333221222333444444433322\n01222211122333332322222333444444433\n0122322111223333433322222333444444\n012333221112233444433322222333444\n01333332211122444444433322222333\n0223333322111333444444433322222\n012344444322112334555555543321\n01233444332211223444555544432\n0123444443321112334555555543\n012334443432211223444555544\n01234444543321112334555555\n0123344544432211223444555\n012344555543321112334555\n01233555544432211223444\n0123555555543321112334\n012444555544432211223\n01334555555543321112\n0223444555544432211\n012345666666654321\n01234555666654432\n0123445666655543\n012345666666654\n01234555666654\n0123445666655\n013345666666\n01234555666\n0123445666\n012345666\n01234555\n0123445\n012345\n01234\n0123\n012\n01\n0";
@@ -673,7 +673,7 @@ void    Game::fillDist(void)
 	}
 }
 
-void	game_loop()
+void	play()
 {
 	Game	game;
 
@@ -707,8 +707,8 @@ void	game_loop()
 	return ;
 }
 
-//int	main(void)
+//int	main()
 //{
-//	game_loop();
+//	play();
 //	return (0);
 //}
