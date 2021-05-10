@@ -77,7 +77,7 @@ class Game
 		void	fillDist();
 		void	printDiag();
 		void	fillDistance(int index);
-		void    calculateSpooky();
+		void    calculateSpooky(); // a recheck
 		void    calculateReachable();
 		void	numberNeigh(int i);
 		float   sizeFactor(int i);
@@ -418,7 +418,7 @@ void    Game::action()
 	allyDo[1] = 0;
 	allyDo[2] = 0;
 }
-
+// TODO spooky ne va pas assez loin !
 // -----------------------------
 //     Calculate useful data
 // -----------------------------
@@ -428,6 +428,8 @@ void    Game::calculateSpooky()
 	int nb;
 	int next;
 
+	for (int i = 0; i < 37; i++)
+		spooky[i] = 0;
 	for (int i = 0; i < 37; i++)
 	{
 		nb = size[i];
