@@ -4,10 +4,6 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-#define WAIT 0
-#define SEED 1
-#define GROW 2
-#define COMPLETE 3
 
 using namespace std;
 
@@ -64,9 +60,6 @@ class Game
 		int     numberOfActions;
 		vector<string>   actions;
 
-		int		allyDo[3];
-		int		oppDo[3];
-
 		// Methods
 
 		void	scanGrid();
@@ -99,7 +92,6 @@ class Game
 		void    printInfo();
 		void    printInput();
 		void	drawBoard();
-		void	updateBoard();
 };
 
 // -----------------------------
@@ -197,7 +189,7 @@ void    Game::printInput() {
 	for (int i = 0; i < numberOfActions; i++) {
 		cerr << actions[i];
 		if (i < numberOfActions - 1)
-			cerr << endl;
+			cerr << " ";
 	}
 	cerr << endl;
 }
@@ -300,32 +292,16 @@ void	Game::sortOnScore()
 
 int		Game::costOf(int i)
 {
-	if (owner[i] == 2)
-	{
-		if (size[i] == 0)
-			return (1 + allySize1);
-		if (size[i] == 1)
-			return (3 + allySize2);
-		if (size[i] == 2)
-			return (7 + allySize3);
-		if (size[i] == 3)
-			return (4);
-		if (owner[i] == 0)
-			return (allySize0);
-	}
-	else if (owner[i] == 1)
-	{
-		if (size[i] == 0)
-			return (1 + oppSize1);
-		if (size[i] == 1)
-			return (3 + oppSize2);
-		if (size[i] == 2)
-			return (7 + oppSize3);
-		if (size[i] == 3)
-			return (4);
-		if (owner[i] == 0)
-			return (oppSize0);
-	}
+	if (size[i] == 0)
+		return (1 + allySize1);
+	if (size[i] == 1)
+		return (3 + allySize2);
+	if (size[i] == 2)
+		return (7 + allySize3);
+	if (size[i] == 3)
+		return (4);
+	if (owner[i] == 0)
+		return (allySize0);
 	return (0);
 }
 
@@ -342,9 +318,7 @@ int     Game::plantSeed(int i)
 	{
 		if (dist[i][sorted[j]] > 1 && dist[i][sorted[j]] <= size[sorted[j]])
 		{
-			allyDo[0] = SEED;
-			allyDo[1] = sorted[j];
-			allyDo[2] = i;
+			cout << "SEED " << sorted[j] << " " << i << "welcome" << endl;
 			return (1);
 		}
 		j--;
@@ -358,16 +332,12 @@ int     Game::executeAction(int i)
 		return (plantSeed(i));
 	if (size[i] >= 0 && size[i] < 3)
 	{
-		allyDo[0] = GROW;
-		allyDo[1] = i;
-		allyDo[2] = 0;
+		cout << "GROW " << i << " be strong" << endl;
 		return (1);
 	}
 	if (size[i] == 3)
 	{
-		allyDo[0] = COMPLETE;
-		allyDo[1] = i;
-		allyDo[2] = 0;
+		cout << "COMPLETE " << i << " jackpot!" << endl;
 		return (1);
 	}
 	return (0);
@@ -414,9 +384,7 @@ void    Game::action()
 		}
 		i++;
 	}
-	allyDo[0] = WAIT;
-	allyDo[1] = 0;
-	allyDo[2] = 0;
+	printf("WAIT zZZzzZzzz\n");
 }
 
 // -----------------------------
@@ -705,21 +673,7 @@ void    Game::fillDist()
 	}
 }
 
-//
-
-void	printAction(int action[3])
-{
-	if (action[0] == WAIT)
-		cout << "WAIT zZZzzZzzz" << endl;
-	else if (action[0] == SEED)
-		cout << "SEED " << action[1] << " " << action[2] << " welcome" << endl;
-	else if (action[0] == GROW)
-		cout << "GROW " << action[1] << " be strong" << endl;
-	else
-		cout << "COMPLETE " << action[1] << " jackpot!" << endl;
-}
-
-void	play()
+void	gameLoop()
 {
 	Game	game;
 
@@ -748,14 +702,12 @@ void	play()
 		if (game.richnessImportance == 0)
 			game.richnessImportance = 1;
 		game.action();
-		printAction(game.allyDo);
-		return ;
 	}
 	return ;
 }
 
-//int	main()
-//{
-//	play();
-//	return (0);
-//}
+int	main()
+{
+	gameLoop();
+	return (0);
+}

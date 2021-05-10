@@ -1,3 +1,5 @@
 *.swp
+*.out
+.vscode
 bot
 simulation/draw
