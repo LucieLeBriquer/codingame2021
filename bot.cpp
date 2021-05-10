@@ -12,83 +12,86 @@ class Game
 	public:
 		// Attributes
 		int		dist[37][37];
-		int		richness_tab[37];
-		int		neigh_tab[37][6];
-		int		on_diag[37][37];
-		int     no_diag[37];
+		int		richness[37];
+		int		neigh[37][6];
+		int		onSameDiag[37][37];
+		int     numberOfDiag[37];
 		int		reachable[37];
 		int		owner[37];
 		int		size[37];
 		int		sorted[37];
 		int		dormant[37];
 		float	score[37];
-		int		neigh_opp[37];
-		int		neigh_allies[37];
 		int		spooky[37];
 		int		cost[37];
-		int		nb_size0;
-		int		nb_size1;
-		int		nb_size2;
-		int		nb_size3;
-		int		opp_size0;
-		int		opp_size1;
-		int		opp_size2;
-		int		opp_size3;
-		int		nb_rich0;
-		int		nb_rich1;
-		int		nb_rich2;
-		int		nb_rich3;
-		int		nb_tree;
-		int		tot_tree;
-		int		sun_dir;
-		int		sun;
-		int		score_tot;
+		int		oppNeighs[37];
+		int		allyNeighs[37];
+
+		int		allySize0;
+		int		allySize1;
+		int		allySize2;
+		int		allySize3;
+		int		oppSize0;
+		int		oppSize1;
+		int		oppSize2;
+		int		oppSize3;
+		int		boardRich0;
+		int		boardRich1;
+		int		boardRich2;
+		int		boardRich3;
+
+		int		allyTrees;
+		int		boardTrees;
+		int		sunDirection;
+		int		allySun;
+		int		allyScore;
 		int		nutrients;
 		int		day;
 		int		oppSun;
 		int		oppScore;
 		bool	oppIsWaiting;
 		int		cells;
-		float	f_rich;
-		int		f_alone;
-		int     max_tree3;
-		float   max_score;
-		int		stop_seed;
-		int     nb_actions;
+
+		float	richnessImportance;
+		int		aloneImportance;
+		int     maxTreeSize3;
+		float   maxMoveScore;
+		int		stopSeeding;
+		int     numberOfActions;
 		vector<string>   actions;
 
 		// Methods
 
-		void	scan_grid(void);
-		void	scan_info(void);
-		void	init_all(void);
-		void	scan_trees(void);
-		void	scan_moves(void);
-		void	fill_dist(void);
-		void	print_diag(void);
-		void	fill_distance(int index);
-		void    calculate_spooky_cells(void);
-		void    calculate_reachable(void);
-		void	nb_neigh(int i);
-		float   size_factor(int i);
-		float   spot_factor(int i);
-		float   cost_factor(int i);
-		void    calculate_cost(void);
-		void    calculate_score(void);
-		void	sort_on_score(void);
-		int		cost_case(int i);
-		int     plant_seed(int i);
-		int     execute_action(int i);
-		void    actualize_score(void);
-		int		time_to_score(void);
-		void    action(void);
-		void	fill_diag(void);
-		int     is_reachable(int i, int j);
-		void	print_score_info(void);
-		void	print_dist(void);
-		void    print_day_info(void);
-		void    print_day(void);
-		void    print_start_info(void);
+		void	scanGrid();
+		void	scanInfo();
+		void	initBoard();
+		void	scanTrees();
+		void	scanMoves();
+		void	fillDist();
+		void	printDiag();
+		void	fillDistance(int index);
+		void    calculateSpooky(void);
+		void    calculateReachable();
+		void	numberNeigh(int i);
+		float   sizeFactor(int i);
+		float   spotFactor(int i);
+		float   costFactor(int i);
+		void    calculateCost();
+		void    calculateScore();
+		void	sortOnScore();
+		int		costOf(int i);
+		int     plantSeed(int i);
+		int     executeAction(int i);
+		void    actualizeScore(void);
+		int		timeToScore();
+		void    action();
+		void	fillDiag();
+		int     isReachable(int i, int j);
+		void	printScoreOfBoard();
+		void	printDist();
+		void    printInfo();
+		void    printInput();
+		void	drawBoard();
 };
 
 // -----------------------------
@@ -115,7 +118,7 @@ void    print_float(float tab[37])
 	cerr << endl;
 }
 
-void	Game::print_score_info(void)
+void	Game::printScoreOfBoard(void)
 {
 	cerr << "        ";
 	for (int i = 0; i < 37; i++)
@@ -131,7 +134,7 @@ void	Game::print_score_info(void)
 	print_tab(sorted);
 }
 
-void	Game::print_dist(void)
+void	Game::printDist(void)
 {
 	for (int i = 0; i < cells; i++)
 	{
@@ -141,55 +144,51 @@ void	Game::print_dist(void)
 	}
 }
 
-void    Game::print_day_info(void)
+void    Game::printInfo(void)
 {
-	cerr << "[DAY " << day << "] sun " << sun << " r0[" << nb_rich0 << "]";
-	cerr << " r1[" << nb_rich1 << "]";
-	cerr << " r2[" << nb_rich2 << "]";
-	cerr << " r3[" << nb_rich3 << "]";
-	cerr << "  rich[" << f_rich << "]" << endl;
+	cerr << "[DAY " << day << "] sun " << allySun << " r0[" << boardRich0 << "]";
+	cerr << " r1[" << boardRich1 << "]";
+	cerr << " r2[" << boardRich2 << "]";
+	cerr << " r3[" << boardRich3 << "]";
+	cerr << "  rich[" << richnessImportance << "]" << endl;
 }
 
-void    Game::print_diag(void)
+void    Game::printDiag(void)
 {
 	cerr << "Free diag : ";
 	for (int i = 0; i < cells; i++)
 	{
-		if (no_diag[i] > 0)
-			cerr << i << "[" << no_diag[i] << "] ";
+		if (numberOfDiag[i] > 0)
+			cerr << i << "[" << numberOfDiag[i] << "] ";
 	}
 	cerr << endl;
 }
 
-void    Game::print_start_info()
-{
+void    Game::printInput() {
 	cerr << cells << endl;
 	for (int i = 0; i < cells; i++) {
-		cerr << i << " " << richness_tab[i] << " ";
+		cerr << i << " " << richness[i] << " ";
 		for (int j = 0; j < 6; j++) {
-			cerr << neigh_tab[i][j];
+			cerr << neigh[i][j];
 			if (j < 5)
 				cerr << " ";
 		}
 		cerr << endl;
 	}
-}
-
-void    Game::print_day() {
 	cerr << day << endl;
 	cerr << nutrients << endl;
-	cerr << sun << " " << score_tot << endl;
+	cerr << allySun << " " << allyScore << endl;
 	cerr << oppSun << " " << oppScore << " " << oppIsWaiting << endl;
-	cerr << tot_tree << endl;
+	cerr << boardTrees << endl;
 	for (int i = 0; i < cells; i++)
 	{
 		if (owner[i] > 0)
 			cerr << i << " " << size[i] << " " << owner[i] - 1 << " " << dormant[i] << endl;
 	}
-	cerr << nb_actions << endl;
-	for (int i = 0; i < nb_actions; i++) {
+	cerr << numberOfActions << endl;
+	for (int i = 0; i < numberOfActions; i++) {
 		cerr << actions[i];
-		if (i < nb_actions - 1)
+		if (i < numberOfActions - 1)
 			cerr << " ";
 	}
 	cerr << endl;
@@ -200,23 +199,23 @@ void    Game::print_day() {
 //        Is on diagonal
 // -----------------------------
 
-int     Game::is_reachable(int i, int j)
+int     Game::isReachable(int i, int j)
 {
 	int neighs[18];
 
 	for (int k = 0; k < 6; k++)
-		neighs[k] = neigh_tab[i][k];
+		neighs[k] = neigh[i][k];
 	for (int k = 0; k < 6; k++)
 	{
 		if (neighs[k] >= 0)
-			neighs[6 + k] = neigh_tab[neighs[k]][k];
+			neighs[6 + k] = neigh[neighs[k]][k];
 		else
 			neighs[6 + k] = -1;
 	}
 	for (int k = 0; k < 6; k++)
 	{
 		if (neighs[6 + k] >= 0)
-			neighs[12 + k] = neigh_tab[neighs[6 + k]][k];
+			neighs[12 + k] = neigh[neighs[6 + k]][k];
 		else
 			neighs[12 + k] = -1;
 	}
@@ -228,9 +227,9 @@ int     Game::is_reachable(int i, int j)
 	return (0);
 }
 
-void    Game::fill_diag(void)
+void    Game::fillDiag(void)
 {
-	int is_on_diag;
+	int isOnSameDiag;
 
 	for (int i = 0; i < cells; i++)
 	{
@@ -238,22 +237,22 @@ void    Game::fill_diag(void)
 		{
 			if (j > i)
 			{
-				is_on_diag = is_reachable(i, j);
-				on_diag[i][j] = is_on_diag;
-				on_diag[j][i] = is_on_diag;
+				isOnSameDiag = isReachable(i, j);
+				onSameDiag[i][j] = isOnSameDiag;
+				onSameDiag[j][i] = isOnSameDiag;
 			}
 			else
-				on_diag[i][j] = 0;
+				onSameDiag[i][j] = 0;
 		}
-		no_diag[i] = 0;
+		numberOfDiag[i] = 0;
 	}
 
 	for (int i = 0; i < cells; i++)
 	{
 		for (int j = 0; j < cells; j++)
 		{
-			if (owner[j] > 1 && on_diag[i][j])
-				no_diag[i]++;
+			if (owner[j] > 1 && onSameDiag[i][j])
+				numberOfDiag[i]++;
 		}
 	}
 }
@@ -262,7 +261,7 @@ void    Game::fill_diag(void)
 //      Score based version
 // -----------------------------
 
-void	Game::sort_on_score(void)
+void	Game::sortOnScore(void)
 {
 	int max;
 	int max_index;
@@ -291,27 +290,27 @@ void	Game::sort_on_score(void)
 	}
 }
 
-int		Game::cost_case(int i)
+int		Game::costOf(int i)
 {
 	if (size[i] == 0)
-		return (1 + nb_size1);
+		return (1 + allySize1);
 	if (size[i] == 1)
-		return (3 + nb_size2);
+		return (3 + allySize2);
 	if (size[i] == 2)
-		return (7 + nb_size3);
+		return (7 + allySize3);
 	if (size[i] == 3)
 		return (4);
 	if (owner[i] == 0)
-		return (nb_size0);
+		return (allySize0);
 	return (0);
 }
 
-int     Game::plant_seed(int i)
+int     Game::plantSeed(int i)
 {
 	int j;
 
 	j = cells - 1;
-	if (neigh_allies[i] != 0)
+	if (allyNeighs[i] != 0)
 		return (0);
 	while (j >= 0 && sorted[j] == -1)
 		j--;
@@ -327,41 +326,39 @@ int     Game::plant_seed(int i)
 	return (0);
 }
 
-int     Game::execute_action(int i)
+int     Game::executeAction(int i)
 {
 	if (owner[i] == 0)
-		return (plant_seed(i));
+		return (plantSeed(i));
 	if (size[i] >= 0 && size[i] < 3)
 	{
-		printf("GROW %d be strong\n", i);
+		cout << "GROW " << i << " be strong" << endl;
 		return (1);
 	}
 	if (size[i] == 3)
 	{
-		printf("COMPLETE %d jackpot!\n", i);
+		cout << "COMPLETE " << i << " jackpot!" << endl;
 		return (1);
 	}
 	return (0);
 }
 
-void    Game::actualize_score(void)
+void    Game::actualizeScore(void)
 {
 	for (int i = 0; i < 37; i++)
 	{
 		if (owner[i] == 2 && size[i] == 3)
-			score[i] = max_score + (6 - neigh_allies[i] - neigh_opp[i]);
+			score[i] = maxMoveScore + (6 - allyNeighs[i] - oppNeighs[i]);
 	}
 }
 
-int     Game::time_to_score(void)
+int     Game::timeToScore(void)
 {
-	static int  prev_opp_size3;
-
-	if (23 - day <= nb_size3)
+	if (23 - day <= allySize3)
 		return (1);
-	if (nb_size3 > max_tree3)
+	if (allySize3 > maxTreeSize3)
 		return (1);
-	if (nb_size3 >= opp_size3 + opp_size2 + opp_size1)
+	if (allySize3 >= oppSize3 + oppSize2 + oppSize1)
 		return (1);
 	return (0);
 }
@@ -371,18 +368,18 @@ void    Game::action(void)
 	int     father;
 	int     i;
 
-	if (time_to_score())
+	if (timeToScore())
 	{
-		actualize_score();
-		sort_on_score();
+		actualizeScore();
+		sortOnScore();
 	}
-	print_score_info();
+	//printScoreOfBoard();
 	i = 0;
 	while (i < cells && sorted[i] != -1)
 	{
-		if (cost[sorted[i]] <= sun)
+		if (cost[sorted[i]] <= allySun)
 		{	
-			if (execute_action(sorted[i]))
+			if (executeAction(sorted[i]))
 				return ;
 		}
 		i++;
@@ -394,7 +391,7 @@ void    Game::action(void)
 //     Calculate useful data
 // -----------------------------
 
-void    Game::calculate_spooky_cells(void)
+void    Game::calculateSpooky(void)
 {
 	int nb;
 	int next;
@@ -404,7 +401,7 @@ void    Game::calculate_spooky_cells(void)
 		nb = size[i];
 		while (nb > 0)
 		{
-			next = neigh_tab[i][sun_dir];
+			next = neigh[i][sunDirection];
 			if (next < 0)
 				break;
 			spooky[next]++;
@@ -413,7 +410,7 @@ void    Game::calculate_spooky_cells(void)
 	}
 };
 
-void    Game::calculate_reachable(void)
+void    Game::calculateReachable(void)
 {
 	int next;
 	int nb;
@@ -431,24 +428,24 @@ void    Game::calculate_reachable(void)
 	}
 }
 
-void     Game::nb_neigh(int i)
+void     Game::numberNeigh(int i)
 {
-	int neigh;
+	int neighbour;
 
 	for (int j = 0; j < 6; j++)
 	{
-		neigh = neigh_tab[i][j];
-		if (neigh >= 0)
+		neighbour = neigh[i][j];
+		if (neighbour >= 0)
 		{
-			if (owner[neigh] == 1)
-				neigh_opp[i]++;
-			else if (owner[neigh] == 2)
-				neigh_allies[i]++;
+			if (owner[neighbour] == 1)
+				oppNeighs[i]++;
+			else if (owner[neighbour] == 2)
+				allyNeighs[i]++;
 		}
 	}
 }
 
-float   Game::size_factor(int i)
+float   Game::sizeFactor(int i)
 {
 	float   size_f;
 
@@ -459,7 +456,7 @@ float   Game::size_factor(int i)
 	return (size_f);
 }
 
-float   Game::spot_factor(int i)
+float   Game::spotFactor(int i)
 {
 	float   alone_f;
 	float   richness_f;
@@ -468,15 +465,15 @@ float   Game::spot_factor(int i)
 	float   diag_f;
 	float   spot_f;
 
-	alone_f = (float)(7 - neigh_opp[i] - neigh_allies[i]);
-	richness_f = richness_tab[i];
-	shadow_f = (neigh_opp[i] > neigh_allies[i]) * 1.0;
-	diag_f = 7.0 / (1 + no_diag[i]);
-	spot_f = f_alone * alone_f + f_rich * richness_f * diag_f + shadow_f + spooky[i];
+	alone_f = (float)(7 - oppNeighs[i] - allyNeighs[i]);
+	richness_f = richness[i];
+	shadow_f = (oppNeighs[i] > allyNeighs[i]) * 1.0;
+	diag_f = 7.0 / (1 + numberOfDiag[i]);
+	spot_f = aloneImportance * alone_f + richnessImportance * richness_f * diag_f + shadow_f + spooky[i];
 	return (spot_f);
 }
 
-float   Game::cost_factor(int i)
+float   Game::costFactor(int i)
 {
 	float cost_f;
 
@@ -484,48 +481,48 @@ float   Game::cost_factor(int i)
 	return (cost_f);
 }
 
-void    Game::calculate_cost(void)
+void    Game::calculateCost(void)
 {
 	for (int i = 0; i < cells; i++)
-		cost[i] = cost_case(i);
+		cost[i] = costOf(i);
 }
 
-void    Game::calculate_score(void)
+void    Game::calculateScore(void)
 {
 	float max;
 
 	max = 0.0;
 	for (int i = 0; i < cells; i++)
-		nb_neigh(i);
+		numberNeigh(i);
 	for (int i = 0; i < cells; i++)
 	{
 		if ((owner[i] == 2 && dormant[i] == 0)
-				|| (owner[i] == 0 && day < stop_seed && reachable[i] && richness_tab[i] > 0))
-			score[i] = spot_factor(i) * size_factor(i);
+				|| (owner[i] == 0 && day < stopSeeding && reachable[i] && richness[i] > 0))
+			score[i] = spotFactor(i) * sizeFactor(i);
 		else
 			score[i] = 0.0;
 		if (max < score[i])
 			max = score[i];
 	}
-	max_score = max;
+	maxMoveScore = max;
 }
 
 // -----------------------------
 //        Scan game info
 // -----------------------------
 
-void	Game::fill_distance(int index)
+void	Game::fillDistance(int index)
 {
 	for (int i = 0; i < 6; i++)
 	{
-		if (neigh_tab[index][i] >= 0)
-			dist[index][neigh_tab[index][i]] = 1;
+		if (neigh[index][i] >= 0)
+			dist[index][neigh[index][i]] = 1;
 	}
 }
 
-void	Game::scan_grid(void)
+void	Game::scanGrid(void)
 {
-	int richness;
+	int rich;
 	int index;
 	int neigh0;
 	int neigh1;
@@ -542,26 +539,26 @@ void	Game::scan_grid(void)
 	}
 	for (int i = 0; i < cells; i++)
 	{
-		cin >> index >> richness >> neigh0 >> neigh1 >> neigh2 >> neigh3 >> neigh4 >> neigh5; cin.ignore();
-		richness_tab[index] = richness;
-		if (richness == 0)
-			nb_rich0++;
-		else if (richness == 1)
-			nb_rich1++;
-		else if (richness == 2)
-			nb_rich2++;
+		cin >> index >> rich >> neigh0 >> neigh1 >> neigh2 >> neigh3 >> neigh4 >> neigh5; cin.ignore();
+		richness[index] = rich;
+		if (rich == 0)
+			boardRich0++;
+		else if (rich == 1)
+			boardRich1++;
+		else if (rich == 2)
+			boardRich2++;
 		else
-			nb_rich3++;
-		neigh_tab[index][0] = neigh0;
-		neigh_tab[index][1] = neigh1;
-		neigh_tab[index][2] = neigh2;
-		neigh_tab[index][3] = neigh3;
-		neigh_tab[index][4] = neigh4;
-		neigh_tab[index][5] = neigh5;
+			boardRich3++;
+		neigh[index][0] = neigh0;
+		neigh[index][1] = neigh1;
+		neigh[index][2] = neigh2;
+		neigh[index][3] = neigh3;
+		neigh[index][4] = neigh4;
+		neigh[index][5] = neigh5;
 	}
 }
 
-void	Game::scan_info(void)
+void	Game::scanInfo(void)
 {
 	int opp_sun;
 	int opp_score;
@@ -569,14 +566,14 @@ void	Game::scan_info(void)
 	int number_of_trees;
 
 	cin >> day; cin.ignore();
-	sun_dir = day % 6;
+	sunDirection = day % 6;
 	cin >> nutrients; cin.ignore();
-	cin >> sun >> score_tot; cin.ignore();
+	cin >> allySun >> allyScore; cin.ignore();
 	cin >> oppSun >> oppScore >> oppIsWaiting; cin.ignore();
-	cin >> tot_tree; cin.ignore();
+	cin >> boardTrees; cin.ignore();
 }
 
-void    Game::init_all(void)
+void    Game::initBoard(void)
 {
 	for (int i = 0 ; i < cells; i++)
 	{
@@ -586,32 +583,32 @@ void    Game::init_all(void)
 		spooky[i] = 0;
 		reachable[i] = 0;
 		score[i] = 0;
-		neigh_allies[i] = 0;
-		neigh_opp[i] = 0;
+		allyNeighs[i] = 0;
+		oppNeighs[i] = 0;
 		cost[i] = 0;
 	}
-	nb_size0 = 0;
-	nb_size1 = 0;
-	nb_size2 = 0;
-	nb_size3 = 0;
-	opp_size0 = 0;
-	opp_size1 = 0;
-	opp_size2 = 0;
-	opp_size3 = 0;
-	f_rich = 2;
-	f_alone = 3;
-	stop_seed = 16;
+	allySize0 = 0;
+	allySize1 = 0;
+	allySize2 = 0;
+	allySize3 = 0;
+	oppSize0 = 0;
+	oppSize1 = 0;
+	oppSize2 = 0;
+	oppSize3 = 0;
+	richnessImportance = 2;
+	aloneImportance = 3;
+	stopSeeding = 16;
 	actions.clear();
 }
 
-void	Game::scan_trees(void)
+void	Game::scanTrees(void)
 {
 	int cell_index;
 	int size_tree;
 	int is_mine;
 	int is_dormant;
 
-	for (int i = 0; i < tot_tree; i++) {
+	for (int i = 0; i < boardTrees; i++) {
 		cin >> cell_index >> size_tree >> is_mine >> is_dormant; cin.ignore();
 		if (cell_index < cells && cell_index >= 0)
 		{
@@ -620,42 +617,42 @@ void	Game::scan_trees(void)
 			if (owner[cell_index] == 2)
 			{
 				if (size_tree == 0)
-					nb_size0++;
+					allySize0++;
 				else if (size_tree == 1)
-					nb_size1++;
+					allySize1++;
 				else if (size_tree == 2)
-					nb_size2++;
+					allySize2++;
 				else if (size_tree == 3)
-					nb_size3++;
+					allySize3++;
 			}
 			else if (owner[cell_index] == 1)
 			{
 				if (size_tree == 0)
-					opp_size0++;
+					oppSize0++;
 				else if (size_tree == 1)
-					opp_size1++;
+					oppSize1++;
 				else if (size_tree == 2)
-					opp_size2++;
+					oppSize2++;
 				else if (size_tree == 3)
-					opp_size3++;
+					oppSize3++;
 			}
 			dormant[cell_index] = is_dormant;
 		}
 	}
-	nb_tree = nb_size0 + nb_size1 + nb_size2 + nb_size3;
+	allyTrees = allySize0 + allySize1 + allySize2 + allySize3;
 }
 
-void	Game::scan_moves(void)
+void	Game::scanMoves(void)
 {
-	cin >> nb_actions; cin.ignore();
-	for (int i = 0; i < nb_actions; i++) {
+	cin >> numberOfActions; cin.ignore();
+	for (int i = 0; i < numberOfActions; i++) {
 		string possibleAction;
 		getline(cin, possibleAction);
 		actions.push_back(possibleAction);
 	}
 }
 
-void    Game::fill_dist(void)
+void    Game::fillDist(void)
 {
 	int     k;
 	const char *str_dist = "0111111222222222222333333333333333333\n012221112233333221222333444444433322\n01222211122333332322222333444444433\n0122322111223333433322222333444444\n012333221112233444433322222333444\n01333332211122444444433322222333\n0223333322111333444444433322222\n012344444322112334555555543321\n01233444332211223444555544432\n0123444443321112334555555543\n012334443432211223444555544\n01234444543321112334555555\n0123344544432211223444555\n012344555543321112334555\n01233555544432211223444\n0123555555543321112334\n012444555544432211223\n01334555555543321112\n0223444555544432211\n012345666666654321\n01234555666654432\n0123445666655543\n012345666666654\n01234555666654\n0123445666655\n013345666666\n01234555666\n0123445666\n012345666\n01234555\n0123445\n012345\n01234\n0123\n012\n01\n0";
@@ -676,36 +673,42 @@ void    Game::fill_dist(void)
 	}
 }
 
-int main()
+void	game_loop()
 {
 	Game	game;
 
-	game.nb_rich0 = 0;
-	game.nb_rich1 = 0;
-	game.nb_rich2 = 0;
-	game.nb_rich3 = 0;
-	game.max_tree3 = 4;
-	game.scan_grid();
-	game.fill_dist();
+	game.boardRich0 = 0;
+	game.boardRich1 = 0;
+	game.boardRich2 = 0;
+	game.boardRich3 = 0;
+	game.maxTreeSize3 = 4;
+	game.scanGrid();
+	game.fillDist();
 	while (1) {
-		game.scan_info();
-		game.init_all();
-		game.scan_trees();
-		game.scan_moves();
+		game.scanInfo();
+		game.initBoard();
+		game.scanTrees();
+		game.scanMoves();
 
-		game.print_start_info();
-		game.print_day();
+		//game.printInput();
 
-		game.fill_diag();
-		game.calculate_spooky_cells();
-		game.calculate_reachable();
-		game.calculate_cost();
-		game.calculate_score();
-		game.sort_on_score();
-		game.f_rich = 2 * sqrt((double)game.nb_rich0);
-		if (game.f_rich == 0)
-			game.f_rich = 1;
+		game.fillDiag();
+		game.calculateSpooky();
+		game.calculateReachable();
+		game.calculateCost();
+		game.calculateScore();
+		game.sortOnScore();
+		game.richnessImportance = 2 * sqrt((double)game.boardRich0);
+		if (game.richnessImportance == 0)
+			game.richnessImportance = 1;
 		game.action();
+		return ;
 	}
-	return (0);
+	return ;
 }
+
+//int	main(void)
+//{
+//	game_loop();
+//	return (0);
+//}

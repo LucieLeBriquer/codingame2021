@@ -90,3 +90,6 @@ class Game
 		void    print_day(void);
 		void    print_start_info(void);
 };
+
+void    print_tab(int tab[37]);
+void    print_float(float tab[37]);
