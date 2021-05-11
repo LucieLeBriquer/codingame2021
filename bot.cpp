@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <fstream>
 #include <cmath>
 #define WAIT 0
 #define SEED 1
@@ -65,9 +66,12 @@ class Game
 		int		stopSeeding;
 		int     numberOfActions;
 		vector<string>   actions;
+		vector<string>   allyActions;
+		vector<string>   oppActions;
 
 		int		allyDo[3];
 		int		oppDo[3];
+		int		winner;
 
 		// Methods
 
@@ -76,6 +80,10 @@ class Game
 		void	initBoard();
 		void	scanTrees();
 		void	scanMoves();
+		void	scanGridStream(ifstream& file);
+		void	scanInfoStream(ifstream& file);
+		void	scanTreesStream(ifstream& file);
+		void	scanMovesStream(ifstream& file);
 		void	fillDist();
 		void	printDiag();
 		void	fillDistance(int index);
@@ -102,7 +110,9 @@ class Game
 		void    printInput();
 		void	drawBoard();
 		void	updateBoard();
-		int		printFinalScore();
+		void	getFinalScore(int print);
+		void	randomOpponentMove();
+		void	calculateAllActions();
 };
 
 // -----------------------------
@@ -382,16 +392,16 @@ void    Game::actualizeScore()
 	{
 		if (owner[i] == 2 && size[i] == 3)
 			score[i] = maxMoveScore + (6 - allyNeighs[i] - oppNeighs[i]);
-	}
+        if (owner[i] == 2)
+            score[i] = size[i] * score[i];
+    }
 }
 
 int     Game::timeToScore()
 {
-	if (23 - day <= allySize3)
+    if (23 - day <= allySize3)
 		return (1);
 	if (allySize3 > maxTreeSize3)
-		return (1);
-	if (allySize3 >= oppSize3 + oppSize2 + oppSize1)
 		return (1);
 	return (0);
 }
@@ -490,7 +500,7 @@ float   Game::sizeFactor(int i)
 	float   size_f;
 
 	if (size[i] < 3)
-		size_f = size[i] + 2;
+		size_f = size[i] + sqrt(day);
 	else
 		size_f = 1;
 	return (size_f);
@@ -517,7 +527,7 @@ float   Game::costFactor(int i)
 {
 	float cost_f;
 
-	cost_f = 12.0 / (1.0 + cost[i]);
+	cost_f = cost[i] / (size[i] + 2) + 1;
 	return (cost_f);
 }
 
@@ -533,12 +543,11 @@ void    Game::calculateScore()
 
 	max = 0.0;
 	for (int i = 0; i < cells; i++)
-		numberNeigh(i);
-	for (int i = 0; i < cells; i++)
 	{
-		if ((owner[i] == 2 && dormant[i] == 0)
-				|| (owner[i] == 0 && day < stopSeeding && reachable[i] && richness[i] > 0))
-			score[i] = spotFactor(i) * sizeFactor(i);
+        numberNeigh(i);
+		if ((owner[i] == 2 && dormant[i] == 0 && day <= 20 + size[i]) // day <= 19 + size[i]
+				|| (owner[i] == 0 && day <= stopSeeding && reachable[i] && richness[i] > 0))
+			score[i] = spotFactor(i) * sizeFactor(i) * costFactor(i);
 		else
 			score[i] = 0.0;
 		if (max < score[i])
@@ -634,9 +643,9 @@ void    Game::initBoard()
 	oppSize1 = 0;
 	oppSize2 = 0;
 	oppSize3 = 0;
-	richnessImportance = 2;
 	aloneImportance = 3;
-	stopSeeding = 16;
+	stopSeeding = 19;
+	maxTreeSize3 = 4 - (day > 21);
 	actions.clear();
 }
 
@@ -716,13 +725,13 @@ void    Game::fillDist()
 void	printAction(int action[3])
 {
 	if (action[0] == WAIT)
-		cout << "WAIT zZZzzZzzz" << endl;
+		std::cout << "WAIT zZZzzZzzz" << endl;
 	else if (action[0] == SEED)
-		cout << "SEED " << action[1] << " " << action[2] << " welcome" << endl;
+		std::cout << "SEED " << action[1] << " " << action[2] << " welcome" << endl;
 	else if (action[0] == GROW)
-		cout << "GROW " << action[1] << " be strong" << endl;
+		std::cout << "GROW " << action[1] << " be strong" << endl;
 	else
-		cout << "COMPLETE " << action[1] << " jackpot!" << endl;
+		std::cout << "COMPLETE " << action[1] << " jackpot!" << endl;
 }
 
 void	play()
@@ -733,7 +742,6 @@ void	play()
 	game.boardRich1 = 0;
 	game.boardRich2 = 0;
 	game.boardRich3 = 0;
-	game.maxTreeSize3 = 4;
 	game.scanGrid();
 	game.fillDist();
 	while (1) {
@@ -741,18 +749,18 @@ void	play()
 		game.initBoard();
 		game.scanTrees();
 		game.scanMoves();
+
 		game.fillDiag();
 		game.calculateSpooky();
 		game.calculateReachable();
 		game.calculateCost();
 		game.calculateScore();
 		game.sortOnScore();
-		game.richnessImportance = 2 * sqrt((double)game.boardRich0);
+		game.richnessImportance = 10.0 * sqrt((double)game.boardRich0);
 		if (game.richnessImportance == 0)
-			game.richnessImportance = 1;
+			game.richnessImportance = 10.0;
 		game.action();
 		printAction(game.allyDo);
-		return ;
 	}
 	return ;
 }
