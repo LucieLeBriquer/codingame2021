@@ -6,6 +6,7 @@
 #include <cstring>
 
 using namespace std;
+
 vector<int> nums{25,24,23,22,26,11,10,9,21,27,12,3,2,8,20,28,13,4,0,1,7,19,29,14,5,6,18,36,30,15,16,17,35,31,32,33,34};
 vector<int> first{0,4,9,15,22,28,33,37};
 vector<int> width{4,5,6,7,6,5,4};
@@ -284,6 +285,7 @@ void	Game::randomOpponentMove()
 {
 	int				i;
 
+	srand(time(NULL));
 	i = rand() % (oppActionsVect.size() / 3);
 	oppDo[0] = oppActionsVect[3 * i + 0];
 	oppDo[1] = oppActionsVect[3 * i + 1];
@@ -488,7 +490,7 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 
 		game.calculateAllActions();
 		game.randomOpponentMove();
-		if (print)
+		if (print > 1)
 		{
 			printActionColor(game.allyDo, ALLY);
 			printActionColor(game.oppDo, OPPONENT);
@@ -502,10 +504,30 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 	return (game.winner);
 }
 
-int	main(void)
+#include <chrono>
+#include <thread>
+using std::cout;
+using std::cin;
+using std::endl;
+using std::this_thread::sleep_for;
+
+constexpr int TIME_TO_SLEEP = 1000;
+
+int	main(int argc, char **argv)
 {
 	int	res;
+	int	result;
 
-	res = playAndDraw(24, 1, 18, 10.0);
+	res = 0;
+	for (int i = 0; i < atoi(argv[1]); i++)
+	{
+		result = playAndDraw(24, 1, 18, 10.0);
+		if (result == 2)
+			res += 1;
+		else if (result == 1)
+			res -= 1;
+		sleep_for(std::chrono::milliseconds(TIME_TO_SLEEP));
+	}
+	cout << res << endl;
 	return (0);
 }
