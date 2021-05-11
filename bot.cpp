@@ -45,6 +45,7 @@ class Game
 		int		boardRich3;
 
 		int		allyTrees;
+		int		oppTrees;
 		int		boardTrees;
 		int		sunDirection;
 		int		allySun;
@@ -56,6 +57,7 @@ class Game
 		bool	oppIsWaiting;
 		int		cells;
 
+		int		gameTurns;
 		float	richnessImportance;
 		int		aloneImportance;
 		int     maxTreeSize3;
@@ -77,7 +79,7 @@ class Game
 		void	fillDist();
 		void	printDiag();
 		void	fillDistance(int index);
-		void    calculateSpooky(); // a recheck
+		void    calculateSpooky();
 		void    calculateReachable();
 		void	numberNeigh(int i);
 		float   sizeFactor(int i);
@@ -100,6 +102,7 @@ class Game
 		void    printInput();
 		void	drawBoard();
 		void	updateBoard();
+		void	printFinalScore();
 };
 
 // -----------------------------
@@ -465,7 +468,7 @@ void    Game::calculateReachable()
 	}
 }
 
-void     Game::numberNeigh(int i)
+void    Game::numberNeigh(int i)
 {
 	int neighbour;
 
@@ -676,6 +679,7 @@ void	Game::scanTrees()
 		}
 	}
 	allyTrees = allySize0 + allySize1 + allySize2 + allySize3;
+	oppTrees = oppSize0 + oppSize1 + oppSize2 + oppSize3;
 }
 
 void	Game::scanMoves()
@@ -709,8 +713,6 @@ void    Game::fillDist()
 	}
 }
 
-//
-
 void	printAction(int action[3])
 {
 	if (action[0] == WAIT)
@@ -739,9 +741,6 @@ void	play()
 		game.initBoard();
 		game.scanTrees();
 		game.scanMoves();
-
-		//game.printInput();
-
 		game.fillDiag();
 		game.calculateSpooky();
 		game.calculateReachable();

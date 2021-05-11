@@ -1,11 +1,10 @@
-#include "../bot.cpp"
+#include "bot.cpp"
 #define ALLY 2
 #define OPPONENT 1
 
 vector<int> nums{25,24,23,22,26,11,10,9,21,27,12,3,2,8,20,28,13,4,0,1,7,19,29,14,5,6,18,36,30,15,16,17,35,31,32,33,34};
 vector<int> first{0,4,9,15,22,28,33,37};
 vector<int> width{4,5,6,7,6,5,4};
-
 
 void	drawLine()
 {
@@ -107,6 +106,8 @@ void	Game::updateBoard()
 		{
 			allySun -= 4;
 			allyScore += nutrients + 2 * (richness[allyDo[1]] - 1);
+			owner[allyDo[1]] = 0;
+			size[allyDo[1]] = -1;
 			nutrients--;
 		}
 	}
@@ -131,8 +132,41 @@ void	Game::updateBoard()
 		{
 			oppSun -= 4;
 			oppScore += nutrients + 2 * (richness[allyDo[1]] - 1);
+			owner[oppDo[1]] = 0;
+			size[oppDo[1]] = -1;
 			nutrients--;
 		}
+	}
+}
+
+
+void	Game::printFinalScore()
+{
+	cout << "RESULT" << endl;
+	allyScore = allyScore + (allySun / 3);
+	oppScore = oppScore + (oppSun / 3);
+	if (allyScore > oppScore || (allyScore == oppScore && allyTrees > oppTrees))
+	{
+		cout << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts" << endl;
+		if (allyScore == oppScore)
+			cout << " and " << allyTrees << " trees" << endl;
+		cout << "\033[34;1m2nd \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
+		if (allyScore == oppScore)
+			cout << " and " << oppTrees << " trees" << endl;
+	}
+	else if (oppScore < allyScore || (allyScore == oppScore && allyTrees < oppTrees))
+	{
+		cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
+		if (allyScore == oppScore)
+			cout << " and " << oppTrees << " trees" << endl;
+		cout << "\033[31;1m2nd \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts" << endl;
+		if (allyScore == oppScore)
+			cout << " and " << allyTrees << " trees" << endl;
+	}
+	else
+	{
+		cout << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts and " << allyTrees << " trees" << endl;
+		cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts and " << oppTrees << " trees" << endl;
 	}
 }
 
@@ -157,13 +191,14 @@ void	printActionColor(int action[3], int player)
 
 void	playAndDraw(int end)
 {
-	Game	game;
+	Game		game;
 
 	game.boardRich0 = 0;
 	game.boardRich1 = 0;
 	game.boardRich2 = 0;
 	game.boardRich3 = 0;
 	game.maxTreeSize3 = 4;
+	game.gameTurns = 0;
 	game.day = 0;
 	game.scanGrid();
 	game.fillDist();
@@ -185,20 +220,24 @@ void	playAndDraw(int end)
 		game.richnessImportance = 2 * sqrt((double)game.boardRich0);
 		if (game.richnessImportance == 0)
 			game.richnessImportance = 1;
-		game.drawBoard();
+
+		//if (game.gameTurns % 10 == 0)
+			game.drawBoard();
 		game.action();
 		game.oppDo[0] = WAIT;
 
 		printActionColor(game.allyDo, ALLY);
 		printActionColor(game.oppDo, OPPONENT);
 		drawLine();
+		game.gameTurns++;
 		game.updateBoard();
 	}
+	game.printFinalScore();
 	return ;
 }
 
 int	main(void)
 {
-	playAndDraw(10);
+	playAndDraw(1);
 	return (0);
 }
