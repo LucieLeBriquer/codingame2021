@@ -1,6 +1,7 @@
 #include "bot.cpp"
 #define ALLY 2
 #define OPPONENT 1
+#define	DRAW 0
 
 vector<int> nums{25,24,23,22,26,11,10,9,21,27,12,3,2,8,20,28,13,4,0,1,7,19,29,14,5,6,18,36,30,15,16,17,35,31,32,33,34};
 vector<int> first{0,4,9,15,22,28,33,37};
@@ -48,14 +49,22 @@ void	Game::drawBoard()
 		}
 		if (j < 6)
 		{
-			for (int k = 2; k >= 0; k--)
+			for (int k = n / 2 - 1; k >= 0; k--)
 				cout << endl;
 		}
 	}
 	cout << endl << endl << endl;
 }
 
-// apply both moves on the Board
+
+// -----------------------------
+// apply both moves on the board
+// -----------------------------
+
+// -----------------------------
+// apply both moves on the board
+// -----------------------------
+
 void	Game::updateBoard()
 {
 	if (allyDo[0] != WAIT && oppDo[0] != WAIT && allyDo[1] == oppDo[1])
@@ -139,8 +148,7 @@ void	Game::updateBoard()
 	}
 }
 
-
-void	Game::printFinalScore()
+int		Game::printFinalScore()
 {
 	cout << "RESULT" << endl;
 	allyScore = allyScore + (allySun / 3);
@@ -153,8 +161,9 @@ void	Game::printFinalScore()
 		cout << "\033[34;1m2nd \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
 		if (allyScore == oppScore)
 			cout << " and " << oppTrees << " trees" << endl;
+		return (ALLY);
 	}
-	else if (oppScore < allyScore || (allyScore == oppScore && allyTrees < oppTrees))
+	if (oppScore < allyScore || (allyScore == oppScore && allyTrees < oppTrees))
 	{
 		cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
 		if (allyScore == oppScore)
@@ -162,12 +171,11 @@ void	Game::printFinalScore()
 		cout << "\033[31;1m2nd \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts" << endl;
 		if (allyScore == oppScore)
 			cout << " and " << allyTrees << " trees" << endl;
+		return (OPPONENT);
 	}
-	else
-	{
-		cout << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts and " << allyTrees << " trees" << endl;
-		cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts and " << oppTrees << " trees" << endl;
-	}
+	cout << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts and " << allyTrees << " trees" << endl;
+	cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts and " << oppTrees << " trees" << endl;
+	return (DRAW);
 }
 
 void	printActionColor(int action[3], int player)
@@ -221,7 +229,7 @@ void	playAndDraw(int end)
 		if (game.richnessImportance == 0)
 			game.richnessImportance = 1;
 
-		//if (game.gameTurns % 10 == 0)
+		if (game.gameTurns % 5 == 0)
 			game.drawBoard();
 		game.action();
 		game.oppDo[0] = WAIT;
@@ -232,12 +240,14 @@ void	playAndDraw(int end)
 		game.gameTurns++;
 		game.updateBoard();
 	}
+	if ((game.gameTurns - 1) % 5 != 0)
+		game.drawBoard();
 	game.printFinalScore();
 	return ;
 }
 
 int	main(void)
 {
-	playAndDraw(1);
+	playAndDraw(24);
 	return (0);
 }

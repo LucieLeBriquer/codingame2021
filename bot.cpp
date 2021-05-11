@@ -102,7 +102,7 @@ class Game
 		void    printInput();
 		void	drawBoard();
 		void	updateBoard();
-		void	printFinalScore();
+		int		printFinalScore();
 };
 
 // -----------------------------
