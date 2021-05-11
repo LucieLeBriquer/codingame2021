@@ -171,14 +171,14 @@ void	Game::scanMovesStream(ifstream& file)
 
 void	Game::calculateAllActions()
 {
-	stringstream	newAction;
-
-	allyActions.clear();
-	oppActions.clear();
-	allyActions.push_back("WAIT");
-	oppActions.push_back("WAIT");
-	newAction.clear();
-	newAction.str("");
+	oppActionsVect.clear();
+	allyActionsVect.clear();
+	oppActionsVect.push_back(WAIT);
+	oppActionsVect.push_back(0);
+	oppActionsVect.push_back(0);
+	allyActionsVect.push_back(WAIT);
+	allyActionsVect.push_back(0);
+	allyActionsVect.push_back(0);
 	for (int i = 0; i < cells; i++)
 	{
 		if (owner[i] == ALLY)		// calculate all the moves for an ally tree
@@ -187,23 +187,26 @@ void	Game::calculateAllActions()
 			{
 				if (costOf(i) <= allySun)
 				{
-					newAction << "GROW " << i;
-					allyActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+					allyActionsVect.push_back(GROW);
+					allyActionsVect.push_back(i);
+					allyActionsVect.push_back(0);
 				}
 			}
 			else if (size[i] < 3)
 			{
 				if (costOf(i) <= allySun)
 				{
-					newAction << "GROW " << i;
-					allyActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+					allyActionsVect.push_back(GROW);
+					allyActionsVect.push_back(i);
+					allyActionsVect.push_back(0);
 				}
 				for (int k = 0; k < cells; k++)
 				{
 					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= allySun)
 					{
-						newAction << "SEED " << i << " " << k;
-						allyActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+						allyActionsVect.push_back(SEED);
+						allyActionsVect.push_back(i);
+						allyActionsVect.push_back(k);
 					}
 				}
 			}
@@ -211,15 +214,17 @@ void	Game::calculateAllActions()
 			{
 				if (costOf(i) <= allySun)
 				{
-					newAction << "COMPLETE " << i;
-					allyActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+					allyActionsVect.push_back(COMPLETE);
+					allyActionsVect.push_back(i);
+					allyActionsVect.push_back(0);
 				}
 				for (int k = 0; k < cells; k++)
 				{
 					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= allySun)
 					{
-						newAction << "SEED " << i << " " << k;
-						allyActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+						allyActionsVect.push_back(SEED);
+						allyActionsVect.push_back(i);
+						allyActionsVect.push_back(k);
 					}
 				}
 			}
@@ -230,23 +235,26 @@ void	Game::calculateAllActions()
 			{
 				if (costOf(i) <= oppSun)
 				{
-					newAction << "GROW " << i;
-					oppActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+					oppActionsVect.push_back(GROW);
+					oppActionsVect.push_back(i);
+					oppActionsVect.push_back(0);
 				}
 			}
 			else if (size[i] < 3)
 			{
 				if (costOf(i) <= oppSun)
 				{
-					newAction << "GROW " << i;
-					oppActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+					oppActionsVect.push_back(GROW);
+					oppActionsVect.push_back(i);
+					oppActionsVect.push_back(0);
 				}
 				for (int k = 0; k < cells; k++)
 				{
 					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= oppSun)
 					{
-						newAction << "SEED " << i << " " << k;
-						oppActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+						oppActionsVect.push_back(SEED);
+						oppActionsVect.push_back(i);
+						oppActionsVect.push_back(k);
 					}
 				}
 			}
@@ -254,15 +262,17 @@ void	Game::calculateAllActions()
 			{
 				if (costOf(i) <= oppSun)
 				{
-					newAction << "COMPLETE " << i;
-					oppActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+					oppActionsVect.push_back(COMPLETE);
+					oppActionsVect.push_back(i);
+					oppActionsVect.push_back(0);
 				}
 				for (int k = 0; k < cells; k++)
 				{
 					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= oppSun)
 					{
-						newAction << "SEED " << i << " " << k;
-						oppActions.push_back(newAction.str()); newAction.clear(); newAction.str("");
+						oppActionsVect.push_back(SEED);
+						oppActionsVect.push_back(i);
+						oppActionsVect.push_back(k);
 					}
 				}
 			}
@@ -273,37 +283,11 @@ void	Game::calculateAllActions()
 void	Game::randomOpponentMove()
 {
 	int				i;
-	int				k;
-	string			oppAction;;
-	string			words[3];
-    string			token;
-    stringstream	ss(oppAction);
 
-	i = rand() % oppActions.size();
-	oppAction = oppActions[i];
-	k = 0;
-    while (getline(ss, token, ' ')) {
-        words[k % 3]= token;
-		k++;
-    }
-	if (words[0] == "SEED")
-	{
-		oppDo[0] = SEED;
-		oppDo[1] = stoi(words[1]);
-		oppDo[2] = stoi(words[2]);
-	}
-	else if (words[0] == "COMPLETE")
-	{
-		oppDo[0] = COMPLETE;
-		oppDo[1] = stoi(words[1]);
-	}
-	else if (words[0] == "WAIT")
-		oppDo[0] = WAIT;
-	else if (words[0] == "GROW")
-	{
-		oppDo[0] = GROW;
-		oppDo[1] = stoi(words[1]);
-	}
+	i = rand() % (oppActionsVect.size() / 3);
+	oppDo[0] = oppActionsVect[3 * i + 0];
+	oppDo[1] = oppActionsVect[3 * i + 1];
+	oppDo[2] = oppActionsVect[3 * i + 2];
 }
 
 // -----------------------------
@@ -459,21 +443,6 @@ void	printActionColor(int action[3], int player)
 	cout << endl;
 }
 
-void	printActions(Game game)
-{
-	cout << "ACTIONS" << endl << endl;
-	cout << "--> ally" << endl;
-	for (int i = 0; i < game.allyActions.size(); i++)
-		cout << game.allyActions[i] << endl;
-	cout << endl << "--> opponent" << endl;
-	for (int i = 0; i < game.oppActions.size(); i++)
-		cout << game.oppActions[i] << endl;
-	cout << "number of actions : " << game.oppActions.size() + game.allyActions.size() << endl << endl;
-
-	for (int i = 0; i < game.actions.size(); i++)
-		cout << game.actions[i] << endl;
-}
-
 int		playAndDraw(int end, int print, int stopSeeding, float r)
 {
 	ifstream file;
@@ -491,7 +460,7 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 	if (print)
 		cout << endl;
 	while (game.day < end) {
-		if (game.day == 0)
+		if (game.gameTurns == 0)
 		{
 			game.scanInfoStream(file);
 			game.initBoard();
@@ -501,7 +470,6 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 			// fix variables
 			game.stopSeeding = stopSeeding;
 		}
-		game.calculateAllActions();
 		game.maxTreeSize3 = 4 - (game.day > 19) - (game.day > 21);
 
 		game.fillDiag();
@@ -514,10 +482,11 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 		if (game.richnessImportance == 0)
 			game.richnessImportance = r;
 
-		if (print > 1 && game.gameTurns % 5 == 0)
+		if (print > 1)
 			game.drawBoard();
 		game.action();
-		game.oppDo[0] = WAIT;
+
+		game.calculateAllActions();
 		game.randomOpponentMove();
 		if (print)
 		{

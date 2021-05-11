@@ -66,8 +66,8 @@ class Game
 		int		stopSeeding;
 		int     numberOfActions;
 		vector<string>   actions;
-		vector<string>   allyActions;
-		vector<string>   oppActions;
+		vector<int>   oppActionsVect;
+		vector<int>   allyActionsVect;
 
 		int		allyDo[3];
 		int		oppDo[3];
