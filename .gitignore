@@ -2,5 +2,4 @@
 bot
 *.out
 .vscode
-bot
-simulation/draw
+draw

@@ -418,7 +418,7 @@ void    Game::action()
 	allyDo[1] = 0;
 	allyDo[2] = 0;
 }
-// TODO spooky ne va pas assez loin !
+
 // -----------------------------
 //     Calculate useful data
 // -----------------------------
@@ -428,17 +428,20 @@ void    Game::calculateSpooky()
 	int nb;
 	int next;
 
+	sunDirection = day % 6;
 	for (int i = 0; i < 37; i++)
 		spooky[i] = 0;
 	for (int i = 0; i < 37; i++)
 	{
 		nb = size[i];
+		next = i;
 		while (nb > 0)
 		{
-			next = neigh[i][sunDirection];
+			next = neigh[next][sunDirection];
 			if (next < 0)
 				break;
-			spooky[next]++;
+			if (size[next] <= size[i])
+				spooky[next]++;
 			nb--;
 		}
 	}
@@ -600,7 +603,6 @@ void	Game::scanInfo()
 	int number_of_trees;
 
 	cin >> day; cin.ignore();
-	sunDirection = day % 6;
 	cin >> nutrients; cin.ignore();
 	cin >> allySun >> allyScore; cin.ignore();
 	cin >> oppSun >> oppScore >> oppIsWaiting; cin.ignore();

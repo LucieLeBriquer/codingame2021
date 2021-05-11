@@ -32,16 +32,20 @@ void	Game::drawBoard()
 		for (int i = first[j]; i < first[j + 1]; i++)
 		{
 			cell = nums[i];
-			if (owner[cell] == ALLY)
+			if (owner[cell] == ALLY && spooky[cell])
 				cout << "\033[31m";
-			else if (owner[cell] == OPPONENT)
+			else if (owner[cell] == OPPONENT && spooky[cell])
 				cout << "\033[34m";
-			if (spooky[cell])
+			else if (owner[cell] == ALLY)
+				cout << "\033[31;1m";
+			else if (owner[cell] == OPPONENT)
+				cout << "\033[34;1m";
+			else if (spooky[cell])
 				cout << "\033[90m";
 			if (size[cell] < 0)
-				cout << setw(2) << cell << setw(n) << " " << "\033[0m";
+				cout << setw(2) << cell << "\033[0m" << setw(n) << " " ;
 			else
-				cout << setw(2) << cell << "\033[90m[" << size[cell] << "]" << setw(n - 3) << " " << "\033[0m";
+				cout << setw(2) << cell << "\033[0m\033[90m[" << size[cell] << "]" << setw(n - 3) << " " << "\033[0m";
 		}
 		if (j < 6)
 		{
@@ -151,7 +155,7 @@ void	printActionColor(int action[3], int player)
 	cout << endl;
 }
 
-void	playAndDraw()
+void	playAndDraw(int end)
 {
 	Game	game;
 
@@ -164,7 +168,7 @@ void	playAndDraw()
 	game.scanGrid();
 	game.fillDist();
 	cout << endl;
-	while (game.day < 10) {
+	while (game.day < end) {
 		if (game.day == 0)
 		{
 			game.scanInfo();
@@ -195,6 +199,6 @@ void	playAndDraw()
 
 int	main(void)
 {
-	playAndDraw();
+	playAndDraw(10);
 	return (0);
 }
