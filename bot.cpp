@@ -405,7 +405,7 @@ int     Game::timeToScore()
 {
     if (23 - day <= allySize3)
 		return (1);
-	if (allySize3 > maxTreeSize3)
+	if (allySize3 >= maxTreeSize3)
 		return (1);
 	return (0);
 }
@@ -649,7 +649,7 @@ void    Game::initBoard()
 	oppSize3 = 0;
 	aloneImportance = 3;
 	stopSeeding = 19;
-	maxTreeSize3 = 4 - (day > 21);
+	maxTreeSize3 = 5 - (day >= 19) - (day >= 20) - (day >= 21) - (day >= 22);
 	actions.clear();
 }
 

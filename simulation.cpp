@@ -3,6 +3,7 @@
 #include <cstring>
 #include <chrono>
 #include <thread>
+#include <algorithm>
 using std::cout;
 using std::cin;
 using std::endl;
@@ -10,10 +11,24 @@ using std::this_thread::sleep_for;
 using namespace std;
 constexpr int TIME_TO_SLEEP = 1000;
 
-
 vector<int> nums{25,24,23,22,26,11,10,9,21,27,12,3,2,8,20,28,13,4,0,1,7,19,29,14,5,6,18,36,30,15,16,17,35,31,32,33,34};
 vector<int> first{0,4,9,15,22,28,33,37};
 vector<int> width{4,5,6,7,6,5,4};
+vector<int> partOne{3,2,1,12,11,10, 9, 8, 7,26,25,24,23,22,21,20,19,36};
+vector<int> partTwo{6,5,4,18,17,16,15,14,13,35,34,33,32,31,30,29,28,27};
+vector<string> grids{"grids/grid0", "grids/grid1", "grids/grid2", "grids/grid3", "grids/grid4", "grids/grid5", "grids/grid6", "grids/grid7", "grids/grid8", "grids/grid9"};
+
+class Stat
+{
+	public :
+		int	winner;
+		int allyScore;
+		int oppScore;
+};
+
+// -----------------------------
+//    	 drawing functions
+// -----------------------------
 
 void	drawLine()
 {
@@ -64,6 +79,10 @@ void	Game::drawBoard()
 	}
 	cout << endl << endl << endl;
 }
+
+// -----------------------------
+//    	  scan from file
+// -----------------------------
 
 void	Game::scanGridStream(ifstream& file)
 {
@@ -462,7 +481,7 @@ void	Game::getFinalScore(int print, int seed)
 	if (print > 1)
 		printFinalScore(allyScore, oppScore, allyTrees, oppTrees, winner);
 	else if (print == 1)
-		cout << "RESULT " << allyScore << " vs " << oppScore << "\tseed " << seed << endl ;
+		cout << "RESULT " << allyScore << " vs " << oppScore << "  \tseed " << seed << endl ;
 }
 
 void	printActionColor(int action[3], int player)
@@ -484,11 +503,12 @@ void	printActionColor(int action[3], int player)
 	cout << endl;
 }
 
-int		playAndDraw(int end, int print, int seed)
+Stat	playAndDraw(int end, int print, int seed)
 {
 	ifstream file;
-	file.open("start", ios::in);
+	file.open(grids[seed % 10], ios::in);
 	Game	game;
+	Stat	stat;
 
 	game.boardRich0 = 0;
 	game.boardRich1 = 0;
@@ -511,7 +531,7 @@ int		playAndDraw(int end, int print, int seed)
 			// fix variables
 			game.stopSeeding = 18;
 		}
-		game.maxTreeSize3 = 4 - (game.day > 19) - (game.day > 21);
+		game.maxTreeSize3 = 5 - (game.day >= 19) - (game.day >= 20) - (game.day >= 21) - (game.day >= 22);
 
 		game.fillDiag();
 		game.calculateSpooky();
@@ -538,27 +558,40 @@ int		playAndDraw(int end, int print, int seed)
 		game.gameTurns++;
 		game.updateBoard();
 	}
-	if (print > 2 && (game.gameTurns - 1) % 5)
+	if ((print > 1 && (game.gameTurns - 1) % 5))
 			game.drawBoard();
 	game.getFinalScore(print, seed);
-	return (game.winner);
+	stat.winner = game.winner;
+	stat.allyScore = game.allyScore;
+	stat.oppScore = game.oppScore;
+	return (stat);
 }
 
 int	main(int argc, char **argv)
 {
-	int	res;
-	int	result;
-	int	seed;
+	int		seed;
+	Stat	stat;
+	int		nbWin;
+	int		moyAlly;
+	int		moyOpp;
+	int		nbSimu;
 
-	res = 0;
-	for (int i = 0; i < atoi(argv[1]); i++)
+	nbWin = 0;
+	moyAlly = 0;
+	moyOpp = 0;
+	nbSimu = atoi(argv[1]);
+	srand(time(NULL));
+	for (int i = 0; i < nbSimu; i++)
 	{
 		seed = rand();
-		result = playAndDraw(24, 1, seed);
-		if (result == 2)
-			res += 1;
+		stat = playAndDraw(24, 1, seed);
+		nbWin += (stat.winner == ALLY);
+		moyAlly += stat.allyScore;
+		moyOpp += stat.oppScore;
 		sleep_for(std::chrono::milliseconds(TIME_TO_SLEEP));
 	}
-	cout << res << endl;
+	cout << endl << "Pourcentage de victoires\t" << (int)((double)nbWin / (double)nbSimu * 100.0) << "%" << endl;
+	cout << "Moyenne du score allié  \t" << (int)((double)moyAlly / (double)nbSimu) << "pts" << endl;
+	cout << "Moyenne du score ennemi  \t" << (int)((double)moyOpp / (double)nbSimu) << "pts" << endl;
 	return (0);
 }
