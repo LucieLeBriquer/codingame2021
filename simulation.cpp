@@ -16,7 +16,7 @@ vector<int> first{0,4,9,15,22,28,33,37};
 vector<int> width{4,5,6,7,6,5,4};
 vector<int> partOne{3,2,1,12,11,10, 9, 8, 7,26,25,24,23,22,21,20,19,36};
 vector<int> partTwo{6,5,4,18,17,16,15,14,13,35,34,33,32,31,30,29,28,27};
-vector<string> grids{"grids/grid0", "grids/grid1", "grids/grid2", "grids/grid3", "grids/grid4", "grids/grid5", "grids/grid6", "grids/grid7", "grids/grid8", "grids/grid9"};
+vector<string> grids{"grids/grid0", "grids/grid1", "grids/grid2", "grids/grid3", "grids/grid4", "grids/grid5", "grids/grid6", "grids/grid7", "grids/grid8", "grids/grid9", "grids/grid10"};
 
 class Stat
 {
@@ -329,7 +329,13 @@ void	printSunCollect(int allyCollect, int oppCollect)
 void	Game::updateBoard()
 {
 	if (allyDo[0] != WAIT && oppDo[0] != WAIT && allyDo[1] == oppDo[1])
+	{
+		if (allyDo[0] == SEED)
+			dormant[allyDo[2]] == 1;
+		if (oppDo[0] == SEED)
+			dormant[oppDo[2]] == 1;
 		return ;
+	}
 
 	// both waiting -> new day and collect of sun points
 	if (allyDo[0] == WAIT && oppDo[0] == WAIT)
@@ -481,7 +487,7 @@ void	Game::getFinalScore(int print, int seed)
 	if (print > 1)
 		printFinalScore(allyScore, oppScore, allyTrees, oppTrees, winner);
 	else if (print == 1)
-		cout << "RESULT " << allyScore << " vs " << oppScore << "  \tseed " << seed << endl ;
+		cout << "\tRESULT " << allyScore << " vs " << oppScore << "  \tseed " << seed << endl ;
 }
 
 void	printActionColor(int action[3], int player)
@@ -503,10 +509,10 @@ void	printActionColor(int action[3], int player)
 	cout << endl;
 }
 
-Stat	playAndDraw(int end, int print, int seed)
+Stat	playAndDraw(int end, int print, int seed, int gridNumber)
 {
 	ifstream file;
-	file.open(grids[seed % 10], ios::in);
+	file.open(grids[gridNumber], ios::in);
 	Game	game;
 	Stat	stat;
 
@@ -532,7 +538,7 @@ Stat	playAndDraw(int end, int print, int seed)
 			game.stopSeeding = 18;
 		}
 		game.maxTreeSize3 = 5 - (game.day >= 19) - (game.day >= 20) - (game.day >= 21) - (game.day >= 22);
-
+		//game.maxTreeSize3 = 5 - (game.day > 21);
 		game.fillDiag();
 		game.calculateSpooky();
 		game.calculateReachable();
@@ -571,27 +577,44 @@ int	main(int argc, char **argv)
 {
 	int		seed;
 	Stat	stat;
+	int		nbSimu;
 	int		nbWin;
 	int		moyAlly;
 	int		moyOpp;
-	int		nbSimu;
+	int		moyTotAlly;
+	int		moyTotOpp;
+	int		nbTotWin;
 
-	nbWin = 0;
-	moyAlly = 0;
-	moyOpp = 0;
+	nbTotWin = 0;
+	moyTotAlly = 0;
+	moyTotOpp = 0;
 	nbSimu = atoi(argv[1]);
 	srand(time(NULL));
-	for (int i = 0; i < nbSimu; i++)
+	for (int gridNumber = 0; gridNumber < 11; gridNumber++)
 	{
-		seed = rand();
-		stat = playAndDraw(24, 1, seed);
-		nbWin += (stat.winner == ALLY);
-		moyAlly += stat.allyScore;
-		moyOpp += stat.oppScore;
-		sleep_for(std::chrono::milliseconds(TIME_TO_SLEEP));
+		nbWin = 0;
+		moyAlly = 0;
+		moyOpp = 0;
+		for (int i = 0; i < nbSimu; i++)
+		{
+			seed = rand();
+			stat = playAndDraw(24, 0, seed, gridNumber);
+			nbWin += (stat.winner == ALLY);
+			moyAlly += stat.allyScore;
+			moyOpp += stat.oppScore;
+			sleep_for(std::chrono::milliseconds(TIME_TO_SLEEP));
+		}
+		nbTotWin += nbWin;
+		moyTotAlly += moyAlly;
+		moyTotOpp += moyOpp;
+		cout << endl << "Grid " << gridNumber << endl ;
+		cout << "Pourcentage de victoires\t" << (int)((double)nbWin / (double)nbSimu * 100.0) << "%" << endl;
+		cout << "Moyenne du score allié  \t" << (int)((double)moyAlly / (double)nbSimu) << "pts" << endl;
+		cout << "Moyenne du score ennemi  \t" << (int)((double)moyOpp / (double)nbSimu) << "pts" << endl;
 	}
-	cout << endl << "Pourcentage de victoires\t" << (int)((double)nbWin / (double)nbSimu * 100.0) << "%" << endl;
-	cout << "Moyenne du score allié  \t" << (int)((double)moyAlly / (double)nbSimu) << "pts" << endl;
-	cout << "Moyenne du score ennemi  \t" << (int)((double)moyOpp / (double)nbSimu) << "pts" << endl;
+	cout << endl << "TOTAL " << endl ;
+	cout << "Pourcentage de victoires\t" << (int)((double)nbTotWin / (double)(nbSimu * 11) * 100.0) << "%" << endl;
+	cout << "Moyenne du score allié  \t" << (int)((double)moyTotAlly / (double)(nbSimu * 11)) << "pts" << endl;
+	cout << "Moyenne du score ennemi  \t" << (int)((double)moyTotOpp / (double)(nbSimu * 11)) << "pts" << endl;
 	return (0);
 }
