@@ -537,17 +537,16 @@ Stat	playAndDraw(int end, int print, int seed, int gridNumber)
 			// fix variables
 			game.stopSeeding = 18;
 		}
-		game.maxTreeSize3 = 5 - (game.day >= 19) - (game.day >= 20) - (game.day >= 21) - (game.day >= 22);
+		//game.maxTreeSize3 = 5 - (game.day >= 19) - (game.day >= 20) - (game.day >= 21) - (game.day >= 22);
 		//game.maxTreeSize3 = 5 - (game.day > 21);
+		game.maxTreeSize3 = 4 - (game.day >= 20);
 		game.fillDiag();
 		game.calculateSpooky();
 		game.calculateReachable();
 		game.calculateCost();
 		game.calculateScore();
 		game.sortOnScore();
-		game.richnessImportance = 10.0 * sqrt((double)game.boardRich0);
-		if (game.richnessImportance == 0)
-			game.richnessImportance = 10.0;
+		game.getRichnessImportance();
 
 		if (print > 2 && game.gameTurns % 5 == 0)
 			game.drawBoard();
@@ -584,13 +583,17 @@ int	main(int argc, char **argv)
 	int		moyTotAlly;
 	int		moyTotOpp;
 	int		nbTotWin;
+	int		minGrid;
+	int		maxGrid;
 
+	minGrid = 0;
+	maxGrid = 11;
 	nbTotWin = 0;
 	moyTotAlly = 0;
 	moyTotOpp = 0;
 	nbSimu = atoi(argv[1]);
 	srand(time(NULL));
-	for (int gridNumber = 0; gridNumber < 11; gridNumber++)
+	for (int gridNumber = minGrid; gridNumber < maxGrid; gridNumber++)
 	{
 		nbWin = 0;
 		moyAlly = 0;
@@ -613,8 +616,8 @@ int	main(int argc, char **argv)
 		cout << "Moyenne du score ennemi  \t" << (int)((double)moyOpp / (double)nbSimu) << "pts" << endl;
 	}
 	cout << endl << "TOTAL " << endl ;
-	cout << "Pourcentage de victoires\t" << (int)((double)nbTotWin / (double)(nbSimu * 11) * 100.0) << "%" << endl;
-	cout << "Moyenne du score allié  \t" << (int)((double)moyTotAlly / (double)(nbSimu * 11)) << "pts" << endl;
-	cout << "Moyenne du score ennemi  \t" << (int)((double)moyTotOpp / (double)(nbSimu * 11)) << "pts" << endl;
+	cout << "Pourcentage de victoires\t" << (int)((double)nbTotWin / (double)(nbSimu * (maxGrid - minGrid)) * 100.0) << "%" << endl;
+	cout << "Moyenne du score allié  \t" << (int)((double)moyTotAlly / (double)(nbSimu * (maxGrid - minGrid))) << "pts" << endl;
+	cout << "Moyenne du score ennemi  \t" << (int)((double)moyTotOpp / (double)(nbSimu * (maxGrid - minGrid))) << "pts" << endl;
 	return (0);
 }

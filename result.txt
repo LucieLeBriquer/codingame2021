@@ -121,3 +121,23 @@ pour maxTreeSize3 = 5 - (day >= 19) - (day >= 20) - (day >= 21) - (day >= 22)
     Pourcentage de victoires        100%
     Moyenne du score allié          169pts
     Moyenne du score ennemi         20pts
+
+
+GRID
+
+file    0   1   2   3   4   5   6   7   8   9   10
+n0      0   0   2   2   2   4   4   6   8   8   8
+
+
+RICHNESS
+pour : richnessImportance = (float)63 / (float)(3 * n3 + 2 * n2 + n1) + 2.0 * (sqrt(n0) + 1);
+    TOTAL 
+    Pourcentage de victoires        100%
+    Moyenne du score allié          159pts
+    Moyenne du score ennemi         20pts
+
+pour : richnessImportance = (float)63 / (float)(3 * n3 + 2 * n2 + n1) + 2.0 * (n0 / 2 + 1);
+    TOTAL 
+    Pourcentage de victoires        100%
+    Moyenne du score allié          159pts
+    Moyenne du score ennemi         20pts

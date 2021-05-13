@@ -35,11 +35,13 @@ class Game
 		int		cost[37];
 		int		oppNeighs[37];
 		int		allyNeighs[37];
+        int     totNeighs[37];
 
 		int		allySize0;
 		int		allySize1;
 		int		allySize2;
 		int		allySize3;
+        int     allyExternSize3;
 		int		oppSize0;
 		int		oppSize1;
 		int		oppSize2;
@@ -61,6 +63,8 @@ class Game
 		int		oppScore;
 		bool	oppIsWaiting;
 		int		cells;
+
+        int     hasComplete;
 
 		int		gameTurns;
 		float	richnessImportance;
@@ -117,6 +121,7 @@ class Game
 		void	getFinalScore(int print, int seed);
 		void	randomOpponentMove(int seed);
 		void	calculateAllActions();
+		void	getRichnessImportance();
 };
 
 // -----------------------------
@@ -145,18 +150,22 @@ void    printFloat(float tab[37])
 
 void	Game::printScoreOfBoard()
 {
-	cerr << "        ";
-	for (int i = 0; i < 37; i++)
-		cerr << setw(3) << i << " ";
-	cerr << endl;
-	cerr << "Score : ";
-	printFloat(score);
-	cerr << "Reach : ";
-	printTab(reachable);
-	cerr << "Cost :  ";
-	printTab(cost);
-	cerr << endl << "Sort :  ";
+	cerr << "Sort :  ";
 	printTab(sorted);
+    cerr << "Cost :  ";
+    for (int i = 0; i < 37; i++)
+	{
+		if (sorted[i] >= 0)
+			cerr << setw(3) << cost[sorted[i]] << " ";
+	}
+	cerr << endl;
+    cerr << "Score : ";
+    for (int i = 0; i < 37; i++)
+	{
+		if (sorted[i] >= 0)
+			cerr << setw(3) << (int) score[sorted[i]] << " ";
+	}
+	cerr << endl;
 }
 
 void	Game::printDist()
@@ -286,6 +295,21 @@ void    Game::fillDiag()
 //      Score based version
 // -----------------------------
 
+void	Game::getRichnessImportance()
+{
+	float	f;
+	int		n0;
+	int		n1;
+	int		n2;
+	int		n3;
+
+	n0 = boardRich0;
+	n1 = boardRich1;
+	n2 = boardRich2;
+	n3 = boardRich3;
+	richnessImportance = (float)63 / (float)(3 * n3 + 2 * n2 + n1) + 2.0 * (n0 / 2 + 1);
+}
+
 void	Game::sortOnScore()
 {
 	int max;
@@ -351,13 +375,11 @@ int     Game::plantSeed(int i)
 	int j;
 
 	j = cells - 1;
-	if (allyNeighs[i] != 0)
-		return (0);
 	while (j >= 0 && sorted[j] == -1)
 		j--;
 	while (j >= 0)
 	{
-		if (dist[i][sorted[j]] > 1 && dist[i][sorted[j]] <= size[sorted[j]])
+		if (dist[i][sorted[j]] > 0 && dist[i][sorted[j]] <= size[sorted[j]])
 		{
 			allyDo[0] = SEED;
 			allyDo[1] = sorted[j];
@@ -371,7 +393,7 @@ int     Game::plantSeed(int i)
 
 int     Game::executeAction(int i)
 {
-	if (owner[i] == 0)
+	if (owner[i] == 0 && allySize0 < 1)
 		return (plantSeed(i));
 	if (size[i] >= 0 && size[i] < 3)
 	{
@@ -380,7 +402,7 @@ int     Game::executeAction(int i)
 		allyDo[2] = 0;
 		return (1);
 	}
-	if (size[i] == 3)
+	if (size[i] == 3 && day > 10 && (i < 19 || day > 21 || allyExternSize3 > 2))// && (!hasComplete || day > 21))
 	{
 		allyDo[0] = COMPLETE;
 		allyDo[1] = i;
@@ -395,7 +417,7 @@ void    Game::actualizeScore()
 	for (int i = 0; i < 37; i++)
 	{
 		if (owner[i] == 2 && size[i] == 3)
-			score[i] = maxMoveScore + (6 - allyNeighs[i] - oppNeighs[i]);
+			score[i] = maxMoveScore; // + (6 - allyNeighs[i] - oppNeighs[i]);
         if (owner[i] == 2)
             score[i] = size[i] * score[i];
     }
@@ -410,17 +432,26 @@ int     Game::timeToScore()
 	return (0);
 }
 
+int     minSun(int day)
+{
+    return (day / 2);
+}
+
 void    Game::action()
 {
 	int     father;
 	int     i;
 
+
+	allyDo[0] = WAIT;
+	allyDo[1] = 0;
+	allyDo[2] = 0;
 	if (timeToScore())
 	{
 		actualizeScore();
 		sortOnScore();
 	}
-	//printScoreOfBoard();
+    //printScoreOfBoard();
 	i = 0;
 	while (i < cells && sorted[i] != -1)
 	{
@@ -431,9 +462,6 @@ void    Game::action()
 		}
 		i++;
 	}
-	allyDo[0] = WAIT;
-	allyDo[1] = 0;
-	allyDo[2] = 0;
 }
 
 // -----------------------------
@@ -495,6 +523,7 @@ void    Game::numberNeigh(int i)
 				oppNeighs[i]++;
 			else if (owner[neighbour] == 2)
 				allyNeighs[i]++;
+            totNeighs[i]++;
 		}
 	}
 }
@@ -503,9 +532,9 @@ float   Game::sizeFactor(int i)
 {
 	float   size_f;
 
-	if (size[i] < 3)
+	if (size[i] < 3 || allySize3 >= maxTreeSize3)
 		size_f = size[i] + sqrt(day);
-	else
+    else
 		size_f = 1;
 	return (size_f);
 }
@@ -513,17 +542,14 @@ float   Game::sizeFactor(int i)
 float   Game::spotFactor(int i)
 {
 	float   alone_f;
-	float   richness_f;
-	float   richness_bgn;
-	float   shadow_f;
+	float   aggressive;
 	float   diag_f;
 	float   spot_f;
 
-	alone_f = (float)(7 - oppNeighs[i] - allyNeighs[i]);
-	richness_f = richness[i];
-	shadow_f = (oppNeighs[i] > allyNeighs[i]) * 1.0;
+	alone_f = (float)(totNeighs[i] - oppNeighs[i] - allyNeighs[i]) / (float)totNeighs[i];
 	diag_f = 7.0 / (1 + numberOfDiag[i]);
-	spot_f = aloneImportance * alone_f + richnessImportance * richness_f * diag_f + shadow_f + spooky[i];
+    aloneImportance = 10 * (37 - boardTrees - boardRich0) / (37 - boardRich0);
+    spot_f = (aloneImportance * alone_f + richnessImportance * richness[i]) * diag_f;
 	return (spot_f);
 }
 
@@ -549,7 +575,7 @@ void    Game::calculateScore()
 	for (int i = 0; i < cells; i++)
 	{
         numberNeigh(i);
-		if ((owner[i] == 2 && dormant[i] == 0 && day <= 20 + size[i]) // day <= 19 + size[i]
+		if ((owner[i] == 2 && dormant[i] == 0 && day <= 20 + size[i])
 				|| (owner[i] == 0 && day <= stopSeeding && reachable[i] && richness[i] > 0))
 			score[i] = spotFactor(i) * sizeFactor(i) * costFactor(i);
 		else
@@ -643,13 +669,14 @@ void    Game::initBoard()
 	allySize1 = 0;
 	allySize2 = 0;
 	allySize3 = 0;
+    allyExternSize3 = 0;
 	oppSize0 = 0;
 	oppSize1 = 0;
 	oppSize2 = 0;
 	oppSize3 = 0;
-	aloneImportance = 3;
+	aloneImportance = 4;
 	stopSeeding = 19;
-	maxTreeSize3 = 5 - (day >= 19) - (day >= 20) - (day >= 21) - (day >= 22);
+	maxTreeSize3 = 4 - (day >= 20);
 	actions.clear();
 }
 
@@ -675,7 +702,11 @@ void	Game::scanTrees()
 				else if (size_tree == 2)
 					allySize2++;
 				else if (size_tree == 3)
+                {
 					allySize3++;
+                    if (cell_index >= 19)
+                        allyExternSize3++;
+                }
 			}
 			else if (owner[cell_index] == 1)
 			{
@@ -737,10 +768,11 @@ void	printAction(int action[3])
 	else
 		std::cout << "COMPLETE " << action[1] << " jackpot!" << endl;
 }
-
+/*
 void	play()
 {
 	Game	game;
+    game.hasComplete = 0;
 
 	game.boardRich0 = 0;
 	game.boardRich1 = 0;
@@ -753,6 +785,7 @@ void	play()
 		game.initBoard();
 		game.scanTrees();
 		game.scanMoves();
+		game.getRichnessImportance();
 
 		game.fillDiag();
 		game.calculateSpooky();
@@ -760,17 +793,20 @@ void	play()
 		game.calculateCost();
 		game.calculateScore();
 		game.sortOnScore();
-		game.richnessImportance = 10.0 * sqrt((double)game.boardRich0);
-		if (game.richnessImportance == 0)
-			game.richnessImportance = 10.0;
+        //game.printScoreOfBoard();
 		game.action();
+		//game.printInput();
+        if (game.allyDo[0] == COMPLETE)
+            game.hasComplete = 1;
+        else
+            game.hasComplete = 0;
 		printAction(game.allyDo);
 	}
 	return ;
 }
 
-//int	main()
-//{
-//	play();
-//	return (0);
-//}
+int	main()
+{
+	play();
+	return (0);
+}*/
