@@ -10,6 +10,10 @@
 #define GROW 2
 #define COMPLETE 3
 
+#define ALLY 2
+#define OPPONENT 1
+#define	DRAW 0
+
 using namespace std;
 
 class Game
@@ -96,7 +100,7 @@ class Game
 		void    calculateCost();
 		void    calculateScore();
 		void	sortOnScore();
-		int		costOf(int i);
+		int		costOf(int i, int player);
 		int     plantSeed(int i);
 		int     executeAction(int i);
 		void    actualizeScore();
@@ -110,8 +114,8 @@ class Game
 		void    printInput();
 		void	drawBoard();
 		void	updateBoard();
-		void	getFinalScore(int print);
-		void	randomOpponentMove();
+		void	getFinalScore(int print, int seed);
+		void	randomOpponentMove(int seed);
 		void	calculateAllActions();
 };
 
@@ -311,7 +315,7 @@ void	Game::sortOnScore()
 	}
 }
 
-int		Game::costOf(int i)
+int		Game::costOf(int i, int player)
 {
 	if (owner[i] == 2)
 	{
@@ -323,10 +327,8 @@ int		Game::costOf(int i)
 			return (7 + allySize3);
 		if (size[i] == 3)
 			return (4);
-		if (owner[i] == 0)
-			return (allySize0);
 	}
-	else if (owner[i] == 1)
+	if (owner[i] == 1)
 	{
 		if (size[i] == 0)
 			return (1 + oppSize1);
@@ -336,9 +338,11 @@ int		Game::costOf(int i)
 			return (7 + oppSize3);
 		if (size[i] == 3)
 			return (4);
-		if (owner[i] == 0)
-			return (oppSize0);
 	}
+	if (player == ALLY)
+		return (allySize0);
+	if (player == OPPONENT)
+		return (oppSize0);
 	return (0);
 }
 
@@ -534,7 +538,7 @@ float   Game::costFactor(int i)
 void    Game::calculateCost()
 {
 	for (int i = 0; i < cells; i++)
-		cost[i] = costOf(i);
+		cost[i] = costOf(i, ALLY);
 }
 
 void    Game::calculateScore()

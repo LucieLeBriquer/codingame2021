@@ -1,11 +1,15 @@
 #include "bot.cpp"
-#define ALLY 2
-#define OPPONENT 1
-#define	DRAW 0
 #include <sstream>
 #include <cstring>
-
+#include <chrono>
+#include <thread>
+using std::cout;
+using std::cin;
+using std::endl;
+using std::this_thread::sleep_for;
 using namespace std;
+constexpr int TIME_TO_SLEEP = 1000;
+
 
 vector<int> nums{25,24,23,22,26,11,10,9,21,27,12,3,2,8,20,28,13,4,0,1,7,19,29,14,5,6,18,36,30,15,16,17,35,31,32,33,34};
 vector<int> first{0,4,9,15,22,28,33,37};
@@ -186,7 +190,7 @@ void	Game::calculateAllActions()
 		{
 			if (size[i] == 0)
 			{
-				if (costOf(i) <= allySun)
+				if (costOf(i, ALLY) <= allySun)
 				{
 					allyActionsVect.push_back(GROW);
 					allyActionsVect.push_back(i);
@@ -195,7 +199,7 @@ void	Game::calculateAllActions()
 			}
 			else if (size[i] < 3)
 			{
-				if (costOf(i) <= allySun)
+				if (costOf(i, ALLY) <= allySun)
 				{
 					allyActionsVect.push_back(GROW);
 					allyActionsVect.push_back(i);
@@ -203,7 +207,7 @@ void	Game::calculateAllActions()
 				}
 				for (int k = 0; k < cells; k++)
 				{
-					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= allySun)
+					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k, ALLY) <= allySun)
 					{
 						allyActionsVect.push_back(SEED);
 						allyActionsVect.push_back(i);
@@ -213,7 +217,7 @@ void	Game::calculateAllActions()
 			}
 			else
 			{
-				if (costOf(i) <= allySun)
+				if (costOf(i, ALLY) <= allySun)
 				{
 					allyActionsVect.push_back(COMPLETE);
 					allyActionsVect.push_back(i);
@@ -221,7 +225,7 @@ void	Game::calculateAllActions()
 				}
 				for (int k = 0; k < cells; k++)
 				{
-					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= allySun)
+					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k, ALLY) <= allySun)
 					{
 						allyActionsVect.push_back(SEED);
 						allyActionsVect.push_back(i);
@@ -234,7 +238,7 @@ void	Game::calculateAllActions()
 		{
 			if (size[i] == 0)
 			{
-				if (costOf(i) <= oppSun)
+				if (costOf(i, OPPONENT) <= oppSun)
 				{
 					oppActionsVect.push_back(GROW);
 					oppActionsVect.push_back(i);
@@ -243,7 +247,7 @@ void	Game::calculateAllActions()
 			}
 			else if (size[i] < 3)
 			{
-				if (costOf(i) <= oppSun)
+				if (costOf(i, OPPONENT) <= oppSun)
 				{
 					oppActionsVect.push_back(GROW);
 					oppActionsVect.push_back(i);
@@ -251,7 +255,7 @@ void	Game::calculateAllActions()
 				}
 				for (int k = 0; k < cells; k++)
 				{
-					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= oppSun)
+					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k, OPPONENT) <= oppSun)
 					{
 						oppActionsVect.push_back(SEED);
 						oppActionsVect.push_back(i);
@@ -261,7 +265,7 @@ void	Game::calculateAllActions()
 			}
 			else
 			{
-				if (costOf(i) <= oppSun)
+				if (costOf(i, OPPONENT) <= oppSun)
 				{
 					oppActionsVect.push_back(COMPLETE);
 					oppActionsVect.push_back(i);
@@ -269,7 +273,7 @@ void	Game::calculateAllActions()
 				}
 				for (int k = 0; k < cells; k++)
 				{
-					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k) <= oppSun)
+					if (dist[k][i] <= size[i] && owner[k] == 0 && richness[k] > 0 && costOf(k, OPPONENT) <= oppSun)
 					{
 						oppActionsVect.push_back(SEED);
 						oppActionsVect.push_back(i);
@@ -281,11 +285,11 @@ void	Game::calculateAllActions()
 	}
 }
 
-void	Game::randomOpponentMove()
+void	Game::randomOpponentMove(int seed)
 {
 	int				i;
 
-	srand(time(NULL));
+	srand(seed);
 	i = rand() % (oppActionsVect.size() / 3);
 	oppDo[0] = oppActionsVect[3 * i + 0];
 	oppDo[1] = oppActionsVect[3 * i + 1];
@@ -335,15 +339,31 @@ void	Game::updateBoard()
 	{
 		if (allyDo[0] == GROW)
 		{
-			allySun -= costOf(allyDo[1]);
+			allySun -= costOf(allyDo[1], ALLY);
+			if (size[allyDo[1]] == 0)
+			{
+				allySize0--;
+				allySize1++;
+			}
+			else if (size[allyDo[1]] == 1)
+			{
+				allySize1--;
+				allySize2++;
+			}
+			else if (size[allyDo[1]] == 2)
+			{
+				allySize2--;
+				allySize3++;
+			}
 			size[allyDo[1]]++;
 			dormant[allyDo[1]] = 1;
 		}
 		else if (allyDo[0] == SEED)
 		{
-			allySun -= costOf(allyDo[2]);
+			allySun -= costOf(allyDo[2], ALLY);
 			owner[allyDo[2]] = ALLY;
 			size[allyDo[2]] = 0;
+			allySize0++;
 			dormant[allyDo[1]] = 1;
 			dormant[allyDo[2]] = 1;
 		}
@@ -353,6 +373,7 @@ void	Game::updateBoard()
 			allyScore += nutrients + 2 * (richness[allyDo[1]] - 1);
 			owner[allyDo[1]] = 0;
 			size[allyDo[1]] = -1;
+			allySize3--;
 			nutrients--;
 		}
 	}
@@ -362,14 +383,31 @@ void	Game::updateBoard()
 	{
 		if (oppDo[0] == GROW)
 		{
-			oppSun -= costOf(oppDo[1]);
+			oppSun -= costOf(oppDo[1], OPPONENT);
+			if (size[oppDo[1]] == 0)
+			{
+				oppSize0--;
+				oppSize1++;
+			}
+			else if (size[oppDo[1]] == 1)
+			{
+				oppSize1--;
+				oppSize2++;
+			}
+			else if (size[oppDo[1]] == 2)
+			{
+				oppSize2--;
+				oppSize3++;
+			}
 			size[oppDo[1]]++;
 			dormant[oppDo[1]] = 1;
 		}
 		else if (oppDo[0] == SEED)
 		{
-			oppSun -= costOf(oppDo[2]);
+			oppSun -= costOf(oppDo[2], OPPONENT);
 			owner[oppDo[2]] = OPPONENT;
+			size[oppDo[2]] = 0;
+			oppSize0++;
 			dormant[oppDo[1]] = 1;
 			dormant[oppDo[2]] = 1;
 		}
@@ -379,6 +417,7 @@ void	Game::updateBoard()
 			oppScore += nutrients + 2 * (richness[allyDo[1]] - 1);
 			owner[oppDo[1]] = 0;
 			size[oppDo[1]] = -1;
+			oppSize3--;
 			nutrients--;
 		}
 	}
@@ -411,7 +450,7 @@ void	printFinalScore(int allyScore, int oppScore, int allyTrees, int oppTrees, i
 	cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts and " << oppTrees << " trees" << endl;
 }
 
-void	Game::getFinalScore(int print)
+void	Game::getFinalScore(int print, int seed)
 {
 	allyScore = allyScore + (allySun / 3);
 	oppScore = oppScore + (oppSun / 3);
@@ -423,7 +462,7 @@ void	Game::getFinalScore(int print)
 	if (print > 1)
 		printFinalScore(allyScore, oppScore, allyTrees, oppTrees, winner);
 	else if (print == 1)
-		cout << "RESULT " << allyScore << " vs " << oppScore << endl ;
+		cout << "RESULT " << allyScore << " vs " << oppScore << "\tseed " << seed << endl ;
 }
 
 void	printActionColor(int action[3], int player)
@@ -445,7 +484,7 @@ void	printActionColor(int action[3], int player)
 	cout << endl;
 }
 
-int		playAndDraw(int end, int print, int stopSeeding, float r)
+int		playAndDraw(int end, int print, int seed)
 {
 	ifstream file;
 	file.open("start", ios::in);
@@ -470,7 +509,7 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 			game.scanMovesStream(file);
 			file.close();
 			// fix variables
-			game.stopSeeding = stopSeeding;
+			game.stopSeeding = 18;
 		}
 		game.maxTreeSize3 = 4 - (game.day > 19) - (game.day > 21);
 
@@ -480,16 +519,16 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 		game.calculateCost();
 		game.calculateScore();
 		game.sortOnScore();
-		game.richnessImportance = r * sqrt((double)game.boardRich0);
+		game.richnessImportance = 10.0 * sqrt((double)game.boardRich0);
 		if (game.richnessImportance == 0)
-			game.richnessImportance = r;
+			game.richnessImportance = 10.0;
 
-		if (print > 1)
+		if (print > 2 && game.gameTurns % 5 == 0)
 			game.drawBoard();
 		game.action();
 
 		game.calculateAllActions();
-		game.randomOpponentMove();
+		game.randomOpponentMove(seed);
 		if (print > 1)
 		{
 			printActionColor(game.allyDo, ALLY);
@@ -499,33 +538,25 @@ int		playAndDraw(int end, int print, int stopSeeding, float r)
 		game.gameTurns++;
 		game.updateBoard();
 	}
-	file.close();
-	game.getFinalScore(print);
+	if (print > 2 && (game.gameTurns - 1) % 5)
+			game.drawBoard();
+	game.getFinalScore(print, seed);
 	return (game.winner);
 }
-
-#include <chrono>
-#include <thread>
-using std::cout;
-using std::cin;
-using std::endl;
-using std::this_thread::sleep_for;
-
-constexpr int TIME_TO_SLEEP = 1000;
 
 int	main(int argc, char **argv)
 {
 	int	res;
 	int	result;
+	int	seed;
 
 	res = 0;
 	for (int i = 0; i < atoi(argv[1]); i++)
 	{
-		result = playAndDraw(24, 1, 18, 10.0);
+		seed = rand();
+		result = playAndDraw(24, 1, seed);
 		if (result == 2)
 			res += 1;
-		else if (result == 1)
-			res -= 1;
 		sleep_for(std::chrono::milliseconds(TIME_TO_SLEEP));
 	}
 	cout << res << endl;
