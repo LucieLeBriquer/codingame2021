@@ -28,10 +28,19 @@ class Game
 		int		reachable[37];
 		int		owner[37];
 		int		size[37];
-		int		sorted[37];
+		vector<int> sorted;
+		vector<int> sortedSeed;
+		vector<int> sortedComplete;
+		vector<int> sortedGrow;
 		int		dormant[37];
 		float	score[37];
 		int		spooky[37];
+		int		spookyT1[37];
+		int		spookyT2[37];
+		int		spookyT3[37];
+		int		spookyT4[37];
+		int		spookyT5[37];
+		float	spookyMoy[37];
 		int		cost[37];
 		int		oppNeighs[37];
 		int		allyNeighs[37];
@@ -64,8 +73,6 @@ class Game
 		bool	oppIsWaiting;
 		int		cells;
 
-        int     hasComplete;
-
 		int		gameTurns;
 		float	richnessImportance;
 		int		aloneImportance;
@@ -80,6 +87,9 @@ class Game
 		int		allyDo[3];
 		int		oppDo[3];
 		int		winner;
+
+		int		sunPerTurn;
+		int		sunPerTurnNotSpooky;
 
 		// Methods
 
@@ -101,6 +111,7 @@ class Game
 		float   sizeFactor(int i);
 		float   spotFactor(int i);
 		float   costFactor(int i);
+		float   sunFactor(int i);
 		void    calculateCost();
 		void    calculateScore();
 		void	sortOnScore();
@@ -122,6 +133,10 @@ class Game
 		void	randomOpponentMove(int seed);
 		void	calculateAllActions();
 		void	getRichnessImportance();
+		void	getSunPerTurn();
+
+		void	calculateAll();
+		void	initAll();
 };
 
 // -----------------------------
@@ -151,20 +166,16 @@ void    printFloat(float tab[37])
 void	Game::printScoreOfBoard()
 {
 	cerr << "Sort :  ";
-	printTab(sorted);
-    cerr << "Cost :  ";
-    for (int i = 0; i < 37; i++)
-	{
-		if (sorted[i] >= 0)
-			cerr << setw(3) << cost[sorted[i]] << " ";
-	}
+	for (int i = 0; i < sorted.size(); i++)
+		cerr << setw(3) << sorted[i] << " ";
+    cerr << endl;
+	cerr << "Cost :  ";
+    for (int i = 0; i < sorted.size(); i++)
+		cerr << setw(3) << cost[sorted[i]] << " ";
 	cerr << endl;
     cerr << "Score : ";
-    for (int i = 0; i < 37; i++)
-	{
-		if (sorted[i] >= 0)
-			cerr << setw(3) << (int) score[sorted[i]] << " ";
-	}
+    for (int i = 0; i < sorted.size(); i++)
+		cerr << setw(3) << (int) score[sorted[i]] << " ";
 	cerr << endl;
 }
 
@@ -292,6 +303,24 @@ void    Game::fillDiag()
 }
 
 // -----------------------------
+//	     Sun and shadows
+// -----------------------------
+
+void	Game::getSunPerTurn()
+{
+	sunPerTurn = 0;
+	sunPerTurnNotSpooky = 0;
+	for (int i = 0; i < cells; i++)
+	{
+		if (owner[i] == ALLY)
+		{
+			sunPerTurn += size[i];
+			sunPerTurnNotSpooky += size[i] * spookyMoy[i];
+		}
+	}
+}
+
+// -----------------------------
 //      Score based version
 // -----------------------------
 
@@ -316,15 +345,16 @@ void	Game::sortOnScore()
 	int max_index;
 	int score_aux[37];
 
-	for (int i = 0; i < 37; i++)
-	{
+	sorted.clear();
+	sortedComplete.clear();
+	sortedGrow.clear();
+	sortedSeed.clear();
+	for (int i = 0; i < cells; i++)
 		score_aux[i] = score[i];
-		sorted[i] = -1;
-	}
-	for (int i = 0; i < 37; i++)
+	for (int i = 0; i < cells; i++)
 	{
 		max = -1;
-		for (int j = 0; j < 37; j++)
+		for (int j = 0; j < cells; j++)
 		{
 			if (score_aux[j] > max)
 			{
@@ -334,7 +364,13 @@ void	Game::sortOnScore()
 		}
 		if (max <= 0)
 			break ;
-		sorted[i] = max_index;
+		sorted.push_back(max_index);
+		if (size[max_index] == 3)
+			sortedComplete.push_back(max_index);
+		else if (size[max_index] == -1)
+			sortedSeed.push_back(max_index);
+		else
+			sortedGrow.push_back(max_index);
 		score_aux[max_index] = -1;
 	}
 }
@@ -372,14 +408,9 @@ int		Game::costOf(int i, int player)
 
 int     Game::plantSeed(int i)
 {
-	int j;
-
-	j = cells - 1;
-	while (j >= 0 && sorted[j] == -1)
-		j--;
-	while (j >= 0)
+	for (int j = sorted.size() - 1; j >= 0; j--)
 	{
-		if (dist[i][sorted[j]] > 0 && dist[i][sorted[j]] <= size[sorted[j]])
+		if (dist[i][sorted[j]] > 1 && dist[i][sorted[j]] <= size[sorted[j]])
 		{
 			allyDo[0] = SEED;
 			allyDo[1] = sorted[j];
@@ -393,7 +424,7 @@ int     Game::plantSeed(int i)
 
 int     Game::executeAction(int i)
 {
-	if (owner[i] == 0 && allySize0 < 1)
+	if (owner[i] == 0)// && (allySize0 < 1 || (day == 23 && allySun % 3 >= costOf(i, ALLY))))
 		return (plantSeed(i));
 	if (size[i] >= 0 && size[i] < 3)
 	{
@@ -402,7 +433,7 @@ int     Game::executeAction(int i)
 		allyDo[2] = 0;
 		return (1);
 	}
-	if (size[i] == 3 && day > 10 && (i < 19 || day > 21 || allyExternSize3 > 2))// && (!hasComplete || day > 21))
+	if (size[i] == 3 && (sunPerTurn >= 15 || day > 22)) // && day > 10 && (i < 19 || day > 21 || allyExternSize3 > 2))
 	{
 		allyDo[0] = COMPLETE;
 		allyDo[1] = i;
@@ -417,7 +448,7 @@ void    Game::actualizeScore()
 	for (int i = 0; i < 37; i++)
 	{
 		if (owner[i] == 2 && size[i] == 3)
-			score[i] = maxMoveScore; // + (6 - allyNeighs[i] - oppNeighs[i]);
+			score[i] = maxMoveScore + richness[i]; // + (6 - allyNeighs[i] - oppNeighs[i]);
         if (owner[i] == 2)
             score[i] = size[i] * score[i];
     }
@@ -429,38 +460,42 @@ int     Game::timeToScore()
 		return (1);
 	if (allySize3 >= maxTreeSize3)
 		return (1);
+    //if (allySize3 > oppSize3 + 1)
+      //  return (1);
 	return (0);
-}
-
-int     minSun(int day)
-{
-    return (day / 2);
 }
 
 void    Game::action()
 {
-	int     father;
-	int     i;
-
-
 	allyDo[0] = WAIT;
 	allyDo[1] = 0;
 	allyDo[2] = 0;
-	if (timeToScore())
+	for (int i = sortedComplete.size() - 1; i >= 0; i--)
 	{
-		actualizeScore();
-		sortOnScore();
+		if (cost[sortedComplete[i]] <= allySun && executeAction(sortedComplete[i]))
+			return ;
 	}
-    //printScoreOfBoard();
-	i = 0;
-	while (i < cells && sorted[i] != -1)
+	for (int i = 0; i < sortedGrow.size(); i++)
 	{
-		if (cost[sorted[i]] <= allySun)
-		{	
-			if (executeAction(sorted[i]))
+		if (cost[sortedGrow[i]] <= allySun && executeAction(sortedGrow[i]))
 				return ;
-		}
-		i++;
+	}
+	if (allySize0 > 0)
+		return ;
+	for (int i = 0; i < sortedSeed.size(); i++)
+	{
+		if (totNeighs[sortedSeed[i]] == 0 && cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
+				return ;
+	}
+    for (int i = 0; i < sortedSeed.size(); i++)
+	{
+		if (allyNeighs[sortedSeed[i]] == 0 && cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
+				return ;
+	}
+    for (int i = 0; i < sortedSeed.size(); i++)
+	{
+		if (cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
+				return ;
 	}
 }
 
@@ -489,6 +524,62 @@ void    Game::calculateSpooky()
 				spooky[next]++;
 			nb--;
 		}
+		nb = size[i];
+		next = i;
+		while (nb > 0)
+		{
+			next = neigh[next][(sunDirection + 1) % 6];
+			if (next < 0)
+				break;
+			if (size[next] <= size[i])
+				spookyT1[next]++;
+			nb--;
+		}
+		nb = size[i];
+		next = i;
+		while (nb > 0)
+		{
+			next = neigh[next][(sunDirection + 2) % 6];
+			if (next < 0)
+				break;
+			if (size[next] <= size[i])
+				spookyT2[next]++;
+			nb--;
+		}
+		nb = size[i];
+		next = i;
+		while (nb > 0)
+		{
+			next = neigh[next][(sunDirection + 3) % 6];
+			if (next < 0)
+				break;
+			if (size[next] <= size[i])
+				spookyT3[next]++;
+			nb--;
+		}
+		nb = size[i];
+		next = i;
+		while (nb > 0)
+		{
+			next = neigh[next][(sunDirection + 4) % 6];
+			if (next < 0)
+				break;
+			if (size[next] <= size[i])
+				spookyT4[next]++;
+			nb--;
+		}
+		nb = size[i];
+		next = i;
+		while (nb > 0)
+		{
+			next = neigh[next][(sunDirection + 5) % 6];
+			if (next < 0)
+				break;
+			if (size[next] <= size[i])
+				spookyT5[next]++;
+			nb--;
+		}
+		spookyMoy[i] = (float)((spooky[i] > 0) + (spookyT1[i] > 0) + (spookyT2[i] > 0) + (spookyT3[i] > 0) + (spookyT4[i] > 0) + (spookyT5[i] > 0)) / 6.0;
 	}
 };
 
@@ -532,11 +623,11 @@ float   Game::sizeFactor(int i)
 {
 	float   size_f;
 
-	if (size[i] < 3 || allySize3 >= maxTreeSize3)
-		size_f = size[i] + sqrt(day);
+    if (size[i] < 3 || allySize3 >= maxTreeSize3)
+		size_f = size[i] + day;
     else
 		size_f = 1;
-	return (size_f);
+	return (size[i] + 3);
 }
 
 float   Game::spotFactor(int i)
@@ -545,12 +636,18 @@ float   Game::spotFactor(int i)
 	float   aggressive;
 	float   diag_f;
 	float   spot_f;
+	float	spooky_f;
 
 	alone_f = (float)(totNeighs[i] - oppNeighs[i] - allyNeighs[i]) / (float)totNeighs[i];
 	diag_f = 7.0 / (1 + numberOfDiag[i]);
     aloneImportance = 10 * (37 - boardTrees - boardRich0) / (37 - boardRich0);
-    spot_f = (aloneImportance * alone_f + richnessImportance * richness[i]) * diag_f;
+    spot_f = (aloneImportance * alone_f + richnessImportance * richness[i]);// * diag_f;
 	return (spot_f);
+}
+
+float	Game::sunFactor(int i)
+{
+	return ((1 - spookyMoy[i]) * (size[i] + 2));
 }
 
 float   Game::costFactor(int i)
@@ -576,14 +673,37 @@ void    Game::calculateScore()
 	{
         numberNeigh(i);
 		if ((owner[i] == 2 && dormant[i] == 0 && day <= 20 + size[i])
-				|| (owner[i] == 0 && day <= stopSeeding && reachable[i] && richness[i] > 0))
-			score[i] = spotFactor(i) * sizeFactor(i) * costFactor(i);
+				|| (owner[i] == 0 && reachable[i] && richness[i] > 0))
+			score[i] = spotFactor(i) * sizeFactor(i) * costFactor(i) * sunFactor(i);
 		else
 			score[i] = 0.0;
 		if (max < score[i])
 			max = score[i];
-	}
+	} 
 	maxMoveScore = max;
+}
+
+void	Game::calculateAll()
+{
+	getRichnessImportance();
+	getSunPerTurn();
+	fillDiag();
+	calculateSpooky();
+	calculateReachable();
+	calculateCost();
+	calculateScore();
+	sortOnScore();
+	action();
+}
+
+void	Game::initAll()
+{
+	boardRich0 = 0;
+	boardRich1 = 0;
+	boardRich2 = 0;
+	boardRich3 = 0;
+	gameTurns = 0;
+	day = 0;
 }
 
 // -----------------------------
@@ -675,8 +795,8 @@ void    Game::initBoard()
 	oppSize2 = 0;
 	oppSize3 = 0;
 	aloneImportance = 4;
-	stopSeeding = 19;
-	maxTreeSize3 = 4 - (day >= 20);
+	stopSeeding = 18;
+	maxTreeSize3 = 4; //5 - 2 * (day >= 19);
 	actions.clear();
 }
 
@@ -768,16 +888,13 @@ void	printAction(int action[3])
 	else
 		std::cout << "COMPLETE " << action[1] << " jackpot!" << endl;
 }
+
 /*
 void	play()
 {
 	Game	game;
-    game.hasComplete = 0;
 
-	game.boardRich0 = 0;
-	game.boardRich1 = 0;
-	game.boardRich2 = 0;
-	game.boardRich3 = 0;
+	game.initAll();
 	game.scanGrid();
 	game.fillDist();
 	while (1) {
@@ -785,21 +902,8 @@ void	play()
 		game.initBoard();
 		game.scanTrees();
 		game.scanMoves();
-		game.getRichnessImportance();
-
-		game.fillDiag();
-		game.calculateSpooky();
-		game.calculateReachable();
-		game.calculateCost();
-		game.calculateScore();
-		game.sortOnScore();
-        //game.printScoreOfBoard();
-		game.action();
 		//game.printInput();
-        if (game.allyDo[0] == COMPLETE)
-            game.hasComplete = 1;
-        else
-            game.hasComplete = 0;
+		game.calculateAll();
 		printAction(game.allyDo);
 	}
 	return ;
@@ -809,4 +913,5 @@ int	main()
 {
 	play();
 	return (0);
-}*/
+}
+*/

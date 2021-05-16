@@ -1,143 +1,42 @@
-pour maxTreeSize3 = 5 - (day > 21)
-    DETAIL
-        Grid 0
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	167pts
-        Moyenne du score ennemi  	23pts
-
-        Grid 1
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	166pts
-        Moyenne du score ennemi  	20pts
-
-        Grid 2
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	164pts
-        Moyenne du score ennemi  	18pts
-
-        Grid 3
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	170pts
-        Moyenne du score ennemi  	29pts
-
-        Grid 4
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	179pts
-        Moyenne du score ennemi  	18pts
-
-        Grid 5
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	170pts
-        Moyenne du score ennemi  	14pts
-
-        Grid 6
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	182pts
-        Moyenne du score ennemi  	23pts
-
-        Grid 7
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	170pts
-        Moyenne du score ennemi  	23pts
-
-        Grid 8
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	162pts
-        Moyenne du score ennemi  	19pts
-
-        Grid 9
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	163pts
-        Moyenne du score ennemi  	15pts
-
-        Grid 10
-        Pourcentage de victoires	100%
-        Moyenne du score allié  	166pts
-        Moyenne du score ennemi  	20pts
-
+commit 0ee3544c87687d572120f0ac7963bd5653327e8d
     TOTAL 
-    Pourcentage de victoires	100%
-    Moyenne du score allié  	169pts
-    Moyenne du score ennemi  	20pts
+    Pourcentage de victoires        100%
+    Moyenne du score allié          184pts
+    Moyenne du score ennemi         19pts
 
-pour maxTreeSize3 = 5 - (day >= 19) - (day >= 20) - (day >= 21) - (day >= 22)
-    DETAIL
-        Grid 0
-        Pourcentage de victoires        100%
-        Moyenne du score allié          168pts
-        Moyenne du score ennemi         23pts
 
-        Grid 1
-        Pourcentage de victoires        100%
-        Moyenne du score allié          164pts
-        Moyenne du score ennemi         18pts
-
-        Grid 2
-        Pourcentage de victoires        100%
-        Moyenne du score allié          170pts
-        Moyenne du score ennemi         22pts
-
-        Grid 3
-        Pourcentage de victoires        100%
-        Moyenne du score allié          176pts
-        Moyenne du score ennemi         27pts
-
-        Grid 4
-        Pourcentage de victoires        100%
-        Moyenne du score allié          174pts
-        Moyenne du score ennemi         22pts
-
-        Grid 5
-        Pourcentage de victoires        100%
-        Moyenne du score allié          163pts
-        Moyenne du score ennemi         17pts
-
-        Grid 6
-        Pourcentage de victoires        100%
-        Moyenne du score allié          182pts
-        Moyenne du score ennemi         22pts
-
-        Grid 7
-        Pourcentage de victoires        100%
-        Moyenne du score allié          165pts
-        Moyenne du score ennemi         20pts
-
-        Grid 8
-        Pourcentage de victoires        100%
-        Moyenne du score allié          166pts
-        Moyenne du score ennemi         14pts
-
-        Grid 9
-        Pourcentage de victoires        100%
-        Moyenne du score allié          160pts
-        Moyenne du score ennemi         18pts
-
-        Grid 10
-        Pourcentage de victoires        100%
-        Moyenne du score allié          169pts
-        Moyenne du score ennemi         19pts
+game.maxTreeSize3 = 5 - (game.day >= 19) - (game.day >= 20) - (game.day >= 21) - (game.day >= 22);
+    TOTAL 
+    Pourcentage de victoires        100%
+    Moyenne du score allié          198pts
+    Moyenne du score ennemi         17pts
 
     TOTAL 
     Pourcentage de victoires        100%
-    Moyenne du score allié          169pts
-    Moyenne du score ennemi         20pts
+    Moyenne du score allié          197pts
+    Moyenne du score ennemi         17pts
+
+game.maxTreeSize3 = 5 - 2 * (game.day >= 19)
+    la même
 
 
-GRID
+Mon algo basic :
+- calculer le soleil par tour par taille d'arbre pour chacune des cases :
+    on regarde combien de soleil on obtiendrait dans chacune des directions pour toutes les tailles potentielles
+        bonus si on fait de l'ombre a l'ennemi 
+        malus si on se fait de l'ombre
+    cell  : score pour taille1 / score pour taille2 / score pour taille3
+    cell0 : 1/2/3   si aucun voisin par exemple
+    chacun des scores est la moy des sun dans les 6 directions
+    rmq : bonus/malus = +- tree_size[celui qui est a l'ombre] / 6
 
-file    0   1   2   3   4   5   6   7   8   9   10
-n0      0   0   2   2   2   4   4   6   8   8   8
+- nextSunBalance : si spookyNext[i] != 0, sunBalance[i] = size[i], else sunBalance[i] = 0
+    si i fait de l'ombre a un de mes arbres j : 
+        sunBalance[i] -= size[j]
+    si i fait de l'ombre a un arbre adverse j :
+        sunBalance[i] += size[j]
 
-
-RICHNESS
-pour : richnessImportance = (float)63 / (float)(3 * n3 + 2 * n2 + n1) + 2.0 * (sqrt(n0) + 1);
-    TOTAL 
-    Pourcentage de victoires        100%
-    Moyenne du score allié          159pts
-    Moyenne du score ennemi         20pts
-
-pour : richnessImportance = (float)63 / (float)(3 * n3 + 2 * n2 + n1) + 2.0 * (n0 / 2 + 1);
-    TOTAL 
-    Pourcentage de victoires        100%
-    Moyenne du score allié          159pts
-    Moyenne du score ennemi         20pts
+Globalement :
+- plantation : en fonction du max sun/turn/size
+- grow : pareil, sauf qu'en plus on ne grow que si la balance du jour suivant est > 0
+- complete : plus petit sun/turn/size et uniquement si balance < 3 (<= 0 ?)

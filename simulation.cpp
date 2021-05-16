@@ -4,7 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <algorithm>
-using std::cout;
+using std::cerr;
 using std::cin;
 using std::endl;
 using std::this_thread::sleep_for;
@@ -32,7 +32,7 @@ class Stat
 
 void	drawLine()
 {
-	cout << endl << "-----------------------------------------------------------" << endl << endl;
+	cerr << endl << "-----------------------------------------------------------" << endl << endl;
 }
 
 void	Game::drawBoard()
@@ -41,43 +41,43 @@ void	Game::drawBoard()
 	int		cell;
 	int		n;
 
-	cout << "[DAY " << day << "]   " << "\033[31msun(" << allySun << ") score(" << allyScore << ")";
-	cout << "   " << "\033[34msun(" << oppSun << ") score(" << oppScore << ")";
-	cout << "\033[0m" << endl;
+	cerr << "[DAY " << day << "]   " << "\033[31msun(" << allySun << ") score(" << allyScore << ")";
+	cerr << "   " << "\033[34msun(" << oppSun << ") score(" << oppScore << ")";
+	cerr << "\033[0m" << endl;
 	n = 3;
 	n *= 2;
-	cout << endl << endl;
+	cerr << endl << endl;
 	for (int j = 0; j < 7; j++)
 	{
 		space = (7 - width[j]) * (2 + n) / 2 + 4;
-		cout << setw(space) << " ";
+		cerr << setw(space) << " ";
 		for (int i = first[j]; i < first[j + 1]; i++)
 		{
 			cell = nums[i];
 			if (owner[cell] == ALLY && spooky[cell])
-				cout << "\033[31m";
+				cerr << "\033[31m";
 			else if (owner[cell] == OPPONENT && spooky[cell])
-				cout << "\033[34m";
+				cerr << "\033[34m";
 			else if (owner[cell] == ALLY)
-				cout << "\033[31;1m";
+				cerr << "\033[31;1m";
 			else if (owner[cell] == OPPONENT)
-				cout << "\033[34;1m";
+				cerr << "\033[34;1m";
 			else if (richness[cell] == 0)
-				cout << "\033[90;1m" ;
+				cerr << "\033[90;1m" ;
 			else if (spooky[cell])
-				cout << "\033[90m";
+				cerr << "\033[90m";
 			if (size[cell] < 0)
-				cout << setw(2) << cell << "\033[0m" << setw(n) << " " ;
+				cerr << setw(2) << cell << "\033[0m" << setw(n) << " " ;
 			else
-				cout << setw(2) << cell << "\033[0m\033[90m[" << size[cell] << "]" << setw(n - 3) << " " << "\033[0m";
+				cerr << setw(2) << cell << "\033[0m\033[90m[" << size[cell] << "]" << setw(n - 3) << " " << "\033[0m";
 		}
 		if (j < 6)
 		{
 			for (int k = n / 2 - 1; k >= 0; k--)
-				cout << endl;
+				cerr << endl;
 		}
 	}
-	cout << endl << endl << endl;
+	cerr << endl << endl << endl;
 }
 
 // -----------------------------
@@ -321,8 +321,8 @@ void	Game::randomOpponentMove(int seed)
 
 void	printSunCollect(int allyCollect, int oppCollect)
 {
-	cout << " \033[41mllebriq\033[0m has collected " << allyCollect << " sun points" << endl;
-	cout << " \033[44mopponent\033[0m has collected " << oppCollect << " sun points" << endl;
+	cerr << " \033[41mllebriq\033[0m has collected " << allyCollect << " sun points" << endl;
+	cerr << " \033[44mopponent\033[0m has collected " << oppCollect << " sun points" << endl;
 	drawLine();
 }
 
@@ -450,29 +450,29 @@ void	Game::updateBoard()
 
 void	printFinalScore(int allyScore, int oppScore, int allyTrees, int oppTrees, int winner)
 {
-	cout << "RESULT" << endl;
+	cerr << "RESULT" << endl;
 	if (winner == ALLY)
 	{
-		cout << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts" << endl;
+		cerr << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts" << endl;
 		if (allyScore == oppScore)
-			cout << " and " << allyTrees << " trees" << endl;
-		cout << "\033[34;1m2nd \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
+			cerr << " and " << allyTrees << " trees" << endl;
+		cerr << "\033[34;1m2nd \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
 		if (allyScore == oppScore)
-			cout << " and " << oppTrees << " trees" << endl;
+			cerr << " and " << oppTrees << " trees" << endl;
 		return ;
 	}
 	if (winner == OPPONENT)
 	{
-		cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
+		cerr << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts" << endl;
 		if (allyScore == oppScore)
-			cout << " and " << oppTrees << " trees" << endl;
-		cout << "\033[31;1m2nd \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts" << endl;
+			cerr << " and " << oppTrees << " trees" << endl;
+		cerr << "\033[31;1m2nd \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts" << endl;
 		if (allyScore == oppScore)
-			cout << " and " << allyTrees << " trees" << endl;
+			cerr << " and " << allyTrees << " trees" << endl;
 		return ;
 	}
-	cout << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts and " << allyTrees << " trees" << endl;
-	cout << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts and " << oppTrees << " trees" << endl;
+	cerr << "\033[31;1m1st \033[0m\033[41mllebriq\033[0m   " << allyScore << "pts and " << allyTrees << " trees" << endl;
+	cerr << "\033[34;1m1st \033[0m\033[44mopponent\033[0m  " << oppScore << "pts and " << oppTrees << " trees" << endl;
 }
 
 void	Game::getFinalScore(int print, int seed)
@@ -487,26 +487,26 @@ void	Game::getFinalScore(int print, int seed)
 	if (print > 1)
 		printFinalScore(allyScore, oppScore, allyTrees, oppTrees, winner);
 	else if (print == 1)
-		cout << "\tRESULT " << allyScore << " vs " << oppScore << "  \tseed " << seed << endl ;
+		cerr << "\tRESULT " << allyScore << " vs " << oppScore << "  \tseed " << seed << endl ;
 }
 
 void	printActionColor(int action[3], int player)
 {
-	cout << " ";
+	cerr << " ";
 	if (player == ALLY)
-		cout << "\033[41mllebriq";
+		cerr << "\033[41mllebriq";
 	else
-		cout << "\033[44mopponent";
-	cout << "\033[0m ";
+		cerr << "\033[44mopponent";
+	cerr << "\033[0m ";
 	if (action[0] == WAIT)
-		cout << "is waiting";
+		cerr << "is waiting";
 	else if (action[0] == SEED)
-		cout << "is planting a seed on cell " << action[2] << " from cell " << action[1];
+		cerr << "is planting a seed on cell " << action[2] << " from cell " << action[1];
 	else if (action[0] == GROW)
-		cout << "is growing a tree on cell " << action[1];
+		cerr << "is growing a tree on cell " << action[1];
 	else
-		cout << "is ending their tree life on cell " << action[1];
-	cout << endl;
+		cerr << "is ending their tree life on cell " << action[1];
+	cerr << endl;
 }
 
 Stat	playAndDraw(int end, int print, int seed, int gridNumber)
@@ -516,16 +516,11 @@ Stat	playAndDraw(int end, int print, int seed, int gridNumber)
 	Game	game;
 	Stat	stat;
 
-	game.boardRich0 = 0;
-	game.boardRich1 = 0;
-	game.boardRich2 = 0;
-	game.boardRich3 = 0;
-	game.gameTurns = 0;
-	game.day = 0;
+	game.initAll();
 	game.scanGridStream(file);
 	game.fillDist();
 	if (print)
-		cout << endl;
+		cerr << endl;
 	while (game.day < end) {
 		if (game.gameTurns == 0)
 		{
@@ -534,26 +529,16 @@ Stat	playAndDraw(int end, int print, int seed, int gridNumber)
 			game.scanTreesStream(file);
 			game.scanMovesStream(file);
 			file.close();
-			// fix variables
 			game.stopSeeding = 18;
 		}
-		//game.maxTreeSize3 = 5 - (game.day >= 19) - (game.day >= 20) - (game.day >= 21) - (game.day >= 22);
-		//game.maxTreeSize3 = 5 - (game.day > 21);
-		game.maxTreeSize3 = 4 - (game.day >= 20);
-		game.fillDiag();
-		game.calculateSpooky();
-		game.calculateReachable();
-		game.calculateCost();
-		game.calculateScore();
-		game.sortOnScore();
-		game.getRichnessImportance();
-
-		if (print > 2 && game.gameTurns % 5 == 0)
+		game.maxTreeSize3 = 5 - 2 * (game.day >= 19);
+		game.calculateAll();
+		if (print > 3 || print > 2 && game.gameTurns % 5 == 0)
 			game.drawBoard();
-		game.action();
-
 		game.calculateAllActions();
 		game.randomOpponentMove(seed);
+		if (print > 3)
+			game.printScoreOfBoard();
 		if (print > 1)
 		{
 			printActionColor(game.allyDo, ALLY);
@@ -562,9 +547,9 @@ Stat	playAndDraw(int end, int print, int seed, int gridNumber)
 		}
 		game.gameTurns++;
 		game.updateBoard();
+		if (print > 3)
+			getchar();
 	}
-	if ((print > 1 && (game.gameTurns - 1) % 5))
-			game.drawBoard();
 	game.getFinalScore(print, seed);
 	stat.winner = game.winner;
 	stat.allyScore = game.allyScore;
@@ -585,13 +570,17 @@ int	main(int argc, char **argv)
 	int		nbTotWin;
 	int		minGrid;
 	int		maxGrid;
+	int		endDay;
+	int		print;
 
 	minGrid = 0;
-	maxGrid = 11;
+	maxGrid = 1;
 	nbTotWin = 0;
 	moyTotAlly = 0;
 	moyTotOpp = 0;
 	nbSimu = atoi(argv[1]);
+	endDay = atoi(argv[2]);
+	print = atoi(argv[3]);
 	srand(time(NULL));
 	for (int gridNumber = minGrid; gridNumber < maxGrid; gridNumber++)
 	{
@@ -601,7 +590,7 @@ int	main(int argc, char **argv)
 		for (int i = 0; i < nbSimu; i++)
 		{
 			seed = rand();
-			stat = playAndDraw(24, 0, seed, gridNumber);
+			stat = playAndDraw(24, print, seed, gridNumber);
 			nbWin += (stat.winner == ALLY);
 			moyAlly += stat.allyScore;
 			moyOpp += stat.oppScore;
@@ -610,14 +599,14 @@ int	main(int argc, char **argv)
 		nbTotWin += nbWin;
 		moyTotAlly += moyAlly;
 		moyTotOpp += moyOpp;
-		cout << endl << "Grid " << gridNumber << endl ;
-		cout << "Pourcentage de victoires\t" << (int)((double)nbWin / (double)nbSimu * 100.0) << "%" << endl;
-		cout << "Moyenne du score allié  \t" << (int)((double)moyAlly / (double)nbSimu) << "pts" << endl;
-		cout << "Moyenne du score ennemi  \t" << (int)((double)moyOpp / (double)nbSimu) << "pts" << endl;
+		cerr << endl << "Grid " << gridNumber << endl ;
+		cerr << "Pourcentage de victoires\t" << (int)((double)nbWin / (double)nbSimu * 100.0) << "%" << endl;
+		cerr << "Moyenne du score allié  \t" << (int)((double)moyAlly / (double)nbSimu) << "pts" << endl;
+		cerr << "Moyenne du score ennemi  \t" << (int)((double)moyOpp / (double)nbSimu) << "pts" << endl;
 	}
-	cout << endl << "TOTAL " << endl ;
-	cout << "Pourcentage de victoires\t" << (int)((double)nbTotWin / (double)(nbSimu * (maxGrid - minGrid)) * 100.0) << "%" << endl;
-	cout << "Moyenne du score allié  \t" << (int)((double)moyTotAlly / (double)(nbSimu * (maxGrid - minGrid))) << "pts" << endl;
-	cout << "Moyenne du score ennemi  \t" << (int)((double)moyTotOpp / (double)(nbSimu * (maxGrid - minGrid))) << "pts" << endl;
+	cerr << endl << "TOTAL " << endl ;
+	cerr << "Pourcentage de victoires\t" << (int)((double)nbTotWin / (double)(nbSimu * (maxGrid - minGrid)) * 100.0) << "%" << endl;
+	cerr << "Moyenne du score allié  \t" << (int)((double)moyTotAlly / (double)(nbSimu * (maxGrid - minGrid))) << "pts" << endl;
+	cerr << "Moyenne du score ennemi  \t" << (int)((double)moyTotOpp / (double)(nbSimu * (maxGrid - minGrid))) << "pts" << endl;
 	return (0);
 }
