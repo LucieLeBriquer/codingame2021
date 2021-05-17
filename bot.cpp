@@ -443,59 +443,44 @@ int     Game::executeAction(int i)
 	return (0);
 }
 
-void    Game::actualizeScore()
-{
-	for (int i = 0; i < 37; i++)
-	{
-		if (owner[i] == 2 && size[i] == 3)
-			score[i] = maxMoveScore + richness[i]; // + (6 - allyNeighs[i] - oppNeighs[i]);
-        if (owner[i] == 2)
-            score[i] = size[i] * score[i];
-    }
-}
-
-int     Game::timeToScore()
-{
-    if (23 - day <= allySize3)
-		return (1);
-	if (allySize3 >= maxTreeSize3)
-		return (1);
-    //if (allySize3 > oppSize3 + 1)
-      //  return (1);
-	return (0);
-}
-
 void    Game::action()
 {
 	allyDo[0] = WAIT;
 	allyDo[1] = 0;
 	allyDo[2] = 0;
+
+	// complete
 	for (int i = sortedComplete.size() - 1; i >= 0; i--)
 	{
 		if (cost[sortedComplete[i]] <= allySun && executeAction(sortedComplete[i]))
 			return ;
 	}
+
+	// grow
 	for (int i = 0; i < sortedGrow.size(); i++)
 	{
 		if (cost[sortedGrow[i]] <= allySun && executeAction(sortedGrow[i]))
 				return ;
 	}
-	if (allySize0 > 0)
-		return ;
-	for (int i = 0; i < sortedSeed.size(); i++)
+	
+	//seed
+	if (allySize0 == 0)
 	{
-		if (totNeighs[sortedSeed[i]] == 0 && cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
-				return ;
-	}
-    for (int i = 0; i < sortedSeed.size(); i++)
-	{
-		if (allyNeighs[sortedSeed[i]] == 0 && cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
-				return ;
-	}
-    for (int i = 0; i < sortedSeed.size(); i++)
-	{
-		if (cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
-				return ;
+		for (int i = 0; i < sortedSeed.size(); i++)
+		{
+			if (totNeighs[sortedSeed[i]] == 0 && cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
+					return ;
+		}
+		for (int i = 0; i < sortedSeed.size(); i++)
+		{
+			if (allyNeighs[sortedSeed[i]] == 0 && cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
+					return ;
+		}
+		for (int i = 0; i < sortedSeed.size(); i++)
+		{
+			if (cost[sortedSeed[i]] <= allySun && executeAction(sortedSeed[i]))
+					return ;
+		}
 	}
 }
 
